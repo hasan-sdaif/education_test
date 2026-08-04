@@ -91,10 +91,29 @@ export const Store = {
 export function getStorageMode() { return _storageMode || 'unknown'; }
 export function isSupabase() { return _storageMode === 'supabase'; }
 
-// في الإنتاج، استخدم متغير البيئة NETLIFY_AUTH_SECRET.
-// في المعاينة المحلية، نستخدم ملف ثابت لتجنب تغير السر بين الطلبات.
+// في الإنتاج، استخدم متغير البيئة NETLIFY_AUTH_SECRET (موصى به بشدة).
+// إن لم يُضبط، نشتق سرّاً ثابتاً (deterministic) من بيانات اعتماد الإدارة
+// نفسها (ADMIN_EMAIL/ADMIN_PASSWORD) بدل توليد سرّ عشوائي بحت — لأن السرّ
+// العشوائي كان يتغيّر بين استدعاءات الدوال المنفصلة على Netlify (كل دالة
+// serverless قد تُشغَّل على "instance" جديد بدون ملف /tmp سابق)، مما كان
+// يُبطل توقيع أي توكن صدر سابقاً فور وصول الطلب التالي لـ instance مختلف
+// — وهذا هو سبب "طرد" الأدمن من لوحة التحكم بعد الانتقال بين الأقسام.
+// اشتقاق السرّ من بيانات الاعتماد يجعله ثابتاً طالما لم تتغيّر متغيرات
+// البيئة، بغضّ النظر عن أي instance يعالج الطلب.
 const SECRET_FILE = path.join(os.tmpdir(), 'platform_secret.key');
 function getDevSecret() {
+  // أولوية 1: اشتقاق حتمي من بيانات اعتماد الإدارة (يعمل بثبات في serverless
+  // دون أي اعتماد على استمرارية القرص بين استدعاءات الدوال).
+  try {
+    const email = process.env.ADMIN_EMAIL;
+    const password = process.env.ADMIN_PASSWORD;
+    if (email && password) {
+      return crypto.createHash('sha256').update('platform-derived-secret:' + email + ':' + password).digest('hex');
+    }
+  } catch (_) {}
+  // أولوية 2 (احتياطي محلي فقط): ملف مؤقت ثابت — مفيد فقط عندما يبقى نفس
+  // الـ instance حياً بين الطلبات (كالمعاينة المحلية)، وليس مضموناً في بيئة
+  // Netlify الحقيقية متعددة الـ instances.
   try {
     if (fs.existsSync(SECRET_FILE)) {
       return fs.readFileSync(SECRET_FILE, 'utf8').trim();
