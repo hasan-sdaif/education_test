@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>دخول الإدارة</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Aref+Ruqaa:wght@400;700&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+:root{--ink-900:#12172a;--ink-850:#161c33;--ink-800:#1c2340;--ink-700:#2a3358;--paper:#faf6ec;--text-on-dark:#f2eee1;--text-on-dark-dim:#b8bcd6;--honey:#e7a93d;--honey-deep:#c77f14;--danger:#e35b5b;--success:#4caf7d;--radius-s:10px;--radius-m:16px;--radius-l:24px;--shadow-card:0 10px 30px -12px rgba(10,12,25,.45);--font-display:'Aref Ruqaa',serif;--font-ui:'IBM Plex Sans Arabic',system-ui,sans-serif;}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-ui);background:radial-gradient(circle at 30% 20%,rgba(231,169,61,.06),transparent 50%),var(--ink-900);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;color:var(--text-on-dark);}
+.login-box{background:var(--ink-850);border:1px solid var(--ink-700);border-radius:var(--radius-l);padding:32px;max-width:420px;width:100%;box-shadow:var(--shadow-card);position:relative;overflow:hidden;}
+@media (min-width:480px){.login-box{padding:40px;}}
+.login-box::before{content:'';position:absolute;top:-50px;left:-50px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(231,169,61,.12),transparent 70%);pointer-events:none;}
+.lock-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--honey),var(--honey-deep));display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px;color:#20150a;box-shadow:0 10px 30px -8px rgba(231,169,61,.5);position:relative;}
+.login-box h1{font-family:var(--font-display);font-size:26px;margin:0 0 4px;text-align:center;}
+@media (min-width:480px){.login-box h1{font-size:28px;}}
+.login-box .sub{text-align:center;font-size:13px;color:var(--text-on-dark-dim);margin:0 0 24px;}
+.field{margin-bottom:14px;position:relative;}
+.field label{display:block;font-size:12.5px;font-weight:600;margin-bottom:6px;color:var(--text-on-dark-dim);}
+.field input{width:100%;padding:13px 44px 13px 14px;border-radius:var(--radius-s);border:1px solid var(--ink-700);background:var(--ink-900);color:var(--text-on-dark);font-size:14px;transition:border-color .15s,box-shadow .15s;}
+.field input:focus{outline:none;border-color:var(--honey);box-shadow:0 0 0 3px rgba(231,169,61,.12);}
+.field .field-icon{position:absolute;top:38px;right:14px;color:var(--text-on-dark-dim);font-size:14px;pointer-events:none;}
+.field .pwd-toggle{position:absolute;top:36px;left:12px;background:none;border:none;color:var(--text-on-dark-dim);font-size:14px;cursor:pointer;padding:6px;width:34px;height:34px;border-radius:var(--radius-s);display:flex;align-items:center;justify-content:center;}
+.field .pwd-toggle:hover{background:rgba(255,255,255,.06);color:var(--text-on-dark);}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 22px;border-radius:999px;border:1px solid transparent;font-weight:600;font-size:14px;cursor:pointer;min-height:48px;width:100%;transition:transform .15s,box-shadow .15s;}
+.btn-primary{background:linear-gradient(180deg,var(--honey),var(--honey-deep));color:#20150a;box-shadow:0 8px 20px -8px rgba(231,169,61,.55);}
+.btn-primary:hover{box-shadow:0 10px 26px -8px rgba(231,169,61,.7);transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none!important;}
+.form-msg{font-size:13px;padding:11px 14px;border-radius:var(--radius-s);margin-bottom:14px;display:none;align-items:flex-start;gap:8px;}
+.form-msg.show{display:flex;}
+.form-msg.error{background:rgba(227,91,91,.12);color:#ff9d9d;border:1px solid rgba(227,91,91,.3);}
+.form-msg.success{background:rgba(76,175,125,.12);color:#8fe3b8;border:1px solid rgba(76,175,125,.3);}
+.form-msg i{margin-top:2px;flex-shrink:0;}
+.hint-box{margin-top:18px;padding:12px 14px;background:rgba(91,157,227,.08);border:1px solid rgba(91,157,227,.25);border-radius:var(--radius-s);font-size:11.5px;color:var(--text-on-dark-dim);line-height:1.7;}
+.hint-box b{color:var(--text-on-dark);}
+.hint-box code{font-family:'IBM Plex Mono',monospace;background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;font-size:11px;color:var(--honey);direction:ltr;display:inline-block;}
+.back-link{text-align:center;margin-top:18px;font-size:12px;color:var(--text-on-dark-dim);}
+.back-link a{color:var(--text-on-dark-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:color .15s;}
+.back-link a:hover{color:var(--honey);}
+.loading-overlay{position:fixed;inset:0;background:rgba(18,23,42,.85);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;z-index:200;}
+.loading-overlay.show{display:flex;}
+.loading-overlay .spinner{width:48px;height:48px;border:4px solid rgba(231,169,61,.2);border-top-color:var(--honey);border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#toast-host{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;}
+.toast{background:var(--ink-800);border:1px solid var(--ink-700);color:var(--text-on-dark);padding:11px 18px;border-radius:999px;font-size:13px;box-shadow:var(--shadow-card);animation:toastIn .2s;text-align:center;max-width:calc(100vw - 40px);}
+.toast.success{border-color:rgba(76,175,125,.5);}
+.toast.error{border-color:rgba(227,91,91,.5);}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+  <div class="login-box">
+    <div class="lock-icon"><i class="fa-solid fa-shield-halved"></i></div>
+    <h1>لوحة الإدارة</h1>
+    <p class="sub">دخول خاص بالإدارة فقط</p>
+    <div class="form-msg" id="msg"></div>
+    <form id="loginForm" autocomplete="on">
+      <div class="field">
+        <label for="email">البريد الإلكتروني</label>
+        <input type="email" id="email" name="email" required placeholder="admin@platform.site" autocomplete="email" value="">
+        <i class="fa-solid fa-envelope field-icon"></i>
+      </div>
+      <div class="field">
+        <label for="password">كلمة المرور</label>
+        <input type="password" id="password" name="password" required placeholder="••••••••" autocomplete="current-password">
+        <i class="fa-solid fa-lock field-icon"></i>
+        <button type="button" class="pwd-toggle" id="pwdToggle" aria-label="إظهار/إخفاء كلمة المرور"><i class="fa-solid fa-eye"></i></button>
+      </div>
+      <button type="submit" class="btn btn-primary" id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> دخول</button>
+    </form>
+    <div class="hint-box">
+      <b>بيانات الدخول الافتراضية:</b><br>
+      البريد: <code>admin@platform.site</code><br>
+      كلمة المرور: <code>admin123</code><br>
+      <small style="display:block;margin-top:6px;color:var(--text-on-dark-dim);">يمكن تغييرها من الإعدادات أو عبر متغيرات البيئة <code>ADMIN_EMAIL</code> و <code>ADMIN_PASSWORD</code>.</small>
+    </div>
+    <div class="back-link"><a href="../index.html"><i class="fa-solid fa-arrow-right"></i> العودة للموقع</a></div>
+  </div>
+  <div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+  <div id="toast-host"></div>
+  <script>
+
+/* ═══════════════ INLINE SITE LIBRARY (shared) ═══════════════ */
+const Site = (() => {
+  const API_BASE='/.netlify/functions';
+  const TOKEN_KEY='platform_token';
+  const USER_CACHE_KEY='platform_user_cache';
+  const ADMIN_TOKEN_KEY='platform_admin_token';
+  const TYPE_COLOR_VAR={'مذكرة':'--tag-note','ملخص':'--tag-summary','درس':'--tag-lesson','بث':'--tag-other','أخرى':'--tag-other'};
+  const FILE_TYPE_ICONS={drive:'fa-brands fa-google-drive',youtube:'fa-brands fa-youtube',pdf:'fa-solid fa-file-pdf',image:'fa-solid fa-image',video:'fa-solid fa-film',audio:'fa-solid fa-music',link:'fa-solid fa-link',iframe:'fa-solid fa-code'};
+  const FILE_TYPE_LABELS={drive:'Google Drive',youtube:'YouTube',pdf:'ملف PDF',image:'صورة',video:'فيديو',audio:'ملف صوتي',link:'رابط خارجي',iframe:'محتوى مضمّن'};
+
+  const DEMO_IMPL = (() => {
+    const K='__platform_demo_db__';
+    function load(){try{return JSON.parse(localStorage.getItem(K)||'{}')}catch{return{}}}
+    function save(db){localStorage.setItem(K,JSON.stringify(db))}
+    function seed(){
+      const db=load();
+      if(db._seeded) return db;
+      db.settings={site_name:'[اسم الموقع]',site_logo:'',site_logo_size:40,hero_title:'منصتك التعليمية — مذكرات وملخصات ودروس',hero_subtitle:'مذكرات وملخصات ودروس وفيديوهات تعليمية، بعضها مجاني للجميع وبعضها حصري للمشتركين — بأسعار رمزية تناسب كل طالب وطالبة.',teacher_name:'المعلّم/ة',site_tagline:'مذكرات · ملخصات · دروس · بثوث',site_description:'منصة تعليمية لمشاركة المذكرات والملخصات والدروس.',theme_color:'#e7a93d',theme_mode:'dark',whatsapp_number:'',instagram_url:'',tiktok_url:'',snapchat_url:'',youtube_url:'',payment_phone:'',payment_phone_owner:'',payment_method_benefit:true,payment_method_vodafone:false,currency:'BHD',allow_individual_purchase:true,allow_subscription:true,marketplace_enabled:true,default_commission_rate:0.20,min_payout_amount:5,max_seller_discount_percent:30,announcement_text:'',announcement_active:false,announcement_color:'#e7a93d',maintenance_mode:false,footer_note:'',admin_email:'admin@platform.site',show_features_section:true,show_steps_section:true,show_reviews_section:true,show_faq_section:true,show_plans_section:true,show_subjects_section:true,show_latest_section:true,show_sellers_section:true,show_stats_section:true,show_individual_section:true,show_bundles_section:true,referral_enabled:true,referral_discount_percent:10,referral_reward_percent:5,custom_css:''};
+      db.admins=[{email:'admin@platform.site',password:'admin123',created_at:new Date().toISOString()}];
+      db.users=[];db.users_by_email={};db.subjects=[];db.tags=[];db.categories=[];db.materials=[];db.plans=[];db.bundles=[];db.orders=[];db.subscriptions=[];db.purchases=[];db.reviews=[];db.verified_reviews=[];db.qa=[];db.meets=[];db.sellers=[];db.coupons=[];db.payouts=[];db.payout_requests=[];db.notifications=[];db.activity_log=[];
+      db._seeded=true;save(db);return db;
+    }
+    function reset(){localStorage.removeItem(K);return seed();}
+    function uid(p='id'){return p+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+    function _cu(db,t){
+      if(!t) return null;
+      try{const[p]=t.split('.');const pl=JSON.parse(atob(p));
+        if(pl.role==='admin') return {id:pl.uid,email:pl.uid,name:'الإدارة',role:'admin',gender:'female'};
+        return (db.users||[]).find(u=>u.id===pl.uid)||null;
+      }catch(_){return null;}
+    }
+    function _ca(db,m,me){
+      if(!m.is_locked) return {granted:true,reason:'free'};
+      if(!me) return {granted:false,reason:'login_required'};
+      if(me.role==='admin') return {granted:true,reason:'admin'};
+      if(m.seller_id){const s=(db.sellers||[]).find(x=>x.id===m.seller_id);if(s&&s.user_id===me.id) return {granted:true,reason:'owner'};}
+      const sub=(db.subscriptions||[]).find(s=>s.user_id===me.id&&s.status==='active'&&new Date(s.expires_at)>new Date());
+      if(sub&&(m.access==='subscription'||m.access==='both')) return {granted:true,reason:'subscription'};
+      const pur=(db.purchases||[]).find(p=>p.user_id===me.id&&p.material_id===m.id);
+      if(pur&&(m.access==='subscription'||m.access==='individual'||m.access==='both')) return {granted:true,reason:'purchase'};
+      return {granted:false,reason:'locked'};
+    }
+    function _notify(db,userId,type,title,body){
+      db.notifications=db.notifications||[];
+      db.notifications.push({id:uid('n'),user_id:userId,type,title,body,read:false,created_at:new Date().toISOString()});
+      save(db);
+    }
+    function handle(fn,action,payload){
+      const db=seed();
+      switch(`${fn}:${action}`){
+        case 'content:settings': return {settings:{...db.settings,admin_email:undefined}};
+        case 'content:subjects': return {subjects:(db.subjects||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))};
+        case 'content:tags': return {tags:(db.tags||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))};
+        case 'content:plans': return {plans:(db.plans||[]).slice().sort((a,b)=>(a.sort_order||0)-(b.sort_order||0))};
+        case 'content:reviews': return {reviews:(db.reviews||[]).filter(r=>r.is_visible).slice(0,12)};
+        case 'content:verified-reviews': {let list=(db.verified_reviews||[]).filter(r=>r.status==='visible');if(payload.material_id)list=list.filter(r=>r.material_id===payload.material_id);if(payload.seller_id)list=list.filter(r=>r.seller_id===payload.seller_id);return {reviews:list};}
+        case 'content:bundles': {let list=(db.bundles||[]).filter(b=>b.is_published!==false&&b.seller_status!=='pending');if(payload.seller_id)list=list.filter(b=>b.seller_id===payload.seller_id);return {bundles:list};}
+        case 'content:categories': return {categories:(db.categories||[]).slice()};
+        case 'content:public-stats': return {stats:{materials:(db.materials||[]).filter(m=>m.is_published!==false&&!m.girls_only&&(!m.seller_id||m.seller_status==='approved')).length,subjects:(db.subjects||[]).length,reviews:(db.reviews||[]).filter(r=>r.is_visible).length,students:(db.users||[]).length,sellers:(db.sellers||[]).filter(s=>s.status==='approved').length,plans:(db.plans||[]).length,bundles:(db.bundles||[]).filter(b=>b.is_published!==false).length,verified_reviews:(db.verified_reviews||[]).filter(r=>r.status==='visible').length}};
+        case 'content:meets': return {meets:(db.meets||[]).filter(m=>!m.scheduled_at||new Date(m.scheduled_at)>new Date(Date.now()-86400000))};
+        case 'content:sellers': {
+          const approved=(db.sellers||[]).filter(s=>s.status==='approved');
+          const materials=db.materials||[];
+          return {sellers:approved.map(s=>({id:s.id,display_name:s.display_name,bio:s.bio,profile_image:s.profile_image,subjects:s.subjects,materials_count:materials.filter(m=>m.seller_id===s.id&&m.is_published!==false&&m.seller_status==='approved').length,created_at:s.created_at}))};
+        }
+        case 'content:seller-profile': {
+          const s=(db.sellers||[]).find(x=>x.id===payload.id);
+          if(!s||s.status!=='approved') throw new Error('البائع غير موجود.');
+          const materials=(db.materials||[]).filter(m=>m.seller_id===s.id&&m.is_published!==false&&m.seller_status==='approved').sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+          return {seller:{id:s.id,display_name:s.display_name,bio:s.bio,profile_image:s.profile_image,subjects:s.subjects,created_at:s.created_at},materials};
+        }
+        case 'content:validate-coupon': {
+          if(!payload.code) return {valid:false,error:'أدخل كود الخصم.'};
+          const c=(db.coupons||[]).find(x=>x.code.toLowerCase()===payload.code.toLowerCase().trim()&&x.is_active);
+          if(!c) return {valid:false,error:'كود غير صحيح.'};
+          if(c.expires_at&&new Date(c.expires_at)<new Date()) return {valid:false,error:'انتهت صلاحية الكود.'};
+          if(c.max_uses&&c.used_count>=c.max_uses) return {valid:false,error:'استُنفد هذا الكود.'};
+          return {valid:true,coupon:{id:c.id,code:c.code,discount_type:c.discount_type,discount_value:c.discount_value}};
+        }
+        case 'content:list': {
+          let list=(db.materials||[]).slice();
+          const me=_cu(db,payload.token);
+          if(!me||me.gender!=='female') list=list.filter(m=>!m.girls_only);
+          const approvedSellerIds=new Set((db.sellers||[]).filter(s=>s.status==='approved').map(s=>s.id));
+          if(!me||me.role!=='admin') {
+            list=list.filter(m=>{
+              if(m.is_published===false) return false;
+              if(m.seller_id){if(!approvedSellerIds.has(m.seller_id)) return false;if(m.seller_status!=='approved') return false;}
+              return true;
+            });
+          }
+          if(payload.subject){const s=(db.subjects||[]).find(x=>x.slug===payload.subject);if(s) list=list.filter(m=>m.subject_id===s.id);}
+          if(payload.type) list=list.filter(m=>m.type===payload.type);
+          if(payload.tag) list=list.filter(m=>(m.tags||[]).includes(payload.tag));
+          if(payload.seller_id) list=list.filter(m=>m.seller_id===payload.seller_id);
+          if(payload.q){const q=String(payload.q).toLowerCase();list=list.filter(m=>(m.title||'').toLowerCase().includes(q)||(m.description||'').toLowerCase().includes(q)||(m.search_tags||'').toLowerCase().includes(q));}
+          list.sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+          const sellersMap={};(db.sellers||[]).forEach(s=>sellersMap[s.id]={id:s.id,display_name:s.display_name,profile_image:s.profile_image});
+          list=list.map(m=>({...m,seller:m.seller_id?sellersMap[m.seller_id]:null}));
+          return {materials:list};
+        }
+        case 'content:get': {
+          const m=(db.materials||[]).find(x=>x.slug===payload.slug||x.id===payload.id);
+          if(!m) throw new Error('المحتوى غير موجود.');
+          const me=_cu(db,payload.token);
+          const access=_ca(db,m,me);
+          m.view_count=(m.view_count||0)+1;save(db);
+          const subject=(db.subjects||[]).find(s=>s.id===m.subject_id);
+          const materialTags=(m.tags||[]).map(tid=>(db.tags||[]).find(t=>t.id===tid)).filter(Boolean);
+          let seller=null;
+          if(m.seller_id){const s=(db.sellers||[]).find(x=>x.id===m.seller_id);if(s) seller={id:s.id,display_name:s.display_name,profile_image:s.profile_image,bio:s.bio};}
+          const related=(db.materials||[]).filter(x=>x.id!==m.id&&x.subject_id===m.subject_id&&x.is_published!==false&&(!x.seller_id||x.seller_status==='approved')).slice(0,4).map(x=>({id:x.id,title:x.title,slug:x.slug,type:x.type,cover_image_url:x.cover_image_url,is_locked:x.is_locked,individual_price:x.individual_price,currency:x.currency}));
+          const safe={...m};
+          if(!access.granted){safe.file_url='';safe.extra_attachments=[];}
+          return {material:safe,subject,tags:materialTags,access,seller,related};
+        }
+        case 'auth:register': {
+          const{name,email,password,gender,grade}=payload;
+          if(!name||!email||!password) throw new Error('يرجى ملء الحقول.');
+          if(!gender||!['female','male'].includes(gender)) throw new Error('يرجى اختيار الجنس.');
+          if(password.length<6) throw new Error('كلمة المرور 6 أحرف على الأقل.');
+          const en=email.toLowerCase().trim();
+          if((db.users||[]).find(u=>u.email===en)) throw new Error('البريد مسجّل.');
+          const user={id:uid('u'),name:name.trim(),email:en,password,gender,grade:grade||'',role:'member',status:'active',wishlist:[],created_at:new Date().toISOString()};
+          db.users=db.users||[];db.users.push(user);save(db);
+          const t='demo.'+user.id;const safe={...user};delete safe.password;return {token:t,customer:safe};
+        }
+        case 'auth:login': {
+          const en=(payload.email||'').toLowerCase().trim();
+          const user=(db.users||[]).find(u=>u.email===en);
+          if(!user||user.password!==payload.password) throw new Error('بيانات الدخول غير صحيحة.');
+          if(user.status==='blocked') throw new Error('الحساب محظور.');
+          const t='demo.'+user.id;const safe={...user};delete safe.password;return {token:t,customer:safe};
+        }
+        case 'auth:me': {
+          const me=_cu(db,payload.token);
+          if(!me||me.role==='admin') throw new Error('انتهت الجلسة.');
+          const sub=(db.subscriptions||[]).find(s=>s.user_id===me.id&&s.status==='active'&&new Date(s.expires_at)>new Date());
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          const unread=(db.notifications||[]).filter(n=>n.user_id===me.id&&!n.read).length;
+          const safe={...me};delete safe.password;
+          return {customer:safe,subscription:sub||null,seller:seller?{id:seller.id,status:seller.status,display_name:seller.display_name}:null,unread_notifications:unread};
+        }
+        case 'auth:account-summary': {
+          const me=_cu(db,payload.token);
+          if(!me||me.role==='admin') throw new Error('انتهت الجلسة.');
+          const myOrders=(db.orders||[]).filter(o=>o.user_id===me.id);
+          const sub=(db.subscriptions||[]).find(s=>s.user_id===me.id&&s.status==='active'&&new Date(s.expires_at)>new Date());
+          const myPur=(db.purchases||[]).filter(p=>p.user_id===me.id).map(p=>({...p,material:(db.materials||[]).find(m=>m.id===p.material_id),bundle:(db.bundles||[]).find(b=>b.id===p.bundle_id)}));
+          const myMeets=(db.meets||[]).filter(m=>m.girls_only?me.gender==='female':true).filter(m=>!m.scheduled_at||new Date(m.scheduled_at)>new Date(Date.now()-86400000));
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          const myNotifs=(db.notifications||[]).filter(n=>n.user_id===me.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,20);
+          const wishlist=(me.wishlist||[]).map(id=>(db.materials||[]).find(m=>m.id===id)).filter(Boolean);
+          const myReviews=(db.verified_reviews||[]).filter(r=>r.user_id===me.id);
+          const myActivity=(db.activity_log||[]).filter(a=>a.user_id===me.id||a.user_email===me.email).sort((a,b)=>new Date(b.ts)-new Date(a.ts)).slice(0,30);
+          let renewalAlert=null;
+          if(sub){const daysLeft=Math.ceil((new Date(sub.expires_at)-new Date())/86400000);if(daysLeft<=7)renewalAlert={days_left:daysLeft,plan_id:sub.plan_id,expires_at:sub.expires_at};}
+          return {orders:myOrders,subscription:sub||null,subscription_plan:null,purchases:myPur,meets:myMeets,notifications:myNotifs,wishlist,seller:seller||null,my_reviews:myReviews,activity:myActivity,renewal_alert:renewalAlert,customer:{...me,password:undefined}};
+        }
+        case 'auth:update-profile': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('انتهت الجلسة.');
+          const u=(db.users||[]).find(x=>x.id===me.id);
+          if(payload.name?.trim()) u.name=payload.name.trim();
+          if(payload.grade!==undefined) u.grade=payload.grade;
+          if(payload.current_password&&payload.new_password){if(u.password!==payload.current_password) throw new Error('كلمة المرور الحالية غير صحيحة.');u.password=payload.new_password;}
+          save(db);const safe={...u};delete safe.password;return {customer:safe};
+        }
+        case 'auth:toggle-wishlist': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const u=(db.users||[]).find(x=>x.id===me.id);
+          u.wishlist=u.wishlist||[];
+          const idx=u.wishlist.indexOf(payload.material_id);
+          if(idx>=0) u.wishlist.splice(idx,1); else u.wishlist.push(payload.material_id);
+          save(db);return {wishlist:u.wishlist,added:idx<0};
+        }
+        case 'auth:mark-notification-read': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const n=(db.notifications||[]).find(x=>x.id===payload.id);
+          if(n&&n.user_id===me.id){n.read=true;save(db);}
+          return {ok:true};
+        }
+        case 'auth:mark-all-notifications-read': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          (db.notifications||[]).forEach(n=>{if(n.user_id===me.id&&!n.read) n.read=true;});
+          save(db);return {ok:true};
+        }
+        case 'auth:apply-seller': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const existing=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(existing&&existing.status==='approved') throw new Error('أنت بائع معتمد.');
+          if(existing&&existing.status==='pending') throw new Error('طلبك قيد المراجعة.');
+          const {display_name,bio,role,subjects,profile_image,sample_url,credential_tags}=payload;
+          if(!display_name?.trim()) throw new Error('يرجى إدخال اسم العرض.');
+          if(!bio?.trim()) throw new Error('يرجى إدخال نبذة.');
+          if(!role||!['student_female','student_male','teacher_female','teacher_male'].includes(role)) throw new Error('يرجى تحديد الصفة.');
+          const seller={id:existing?.id||uid('slr'),user_id:me.id,user_email:me.email,user_name:me.name,user_gender:me.gender,display_name:display_name.trim(),bio:bio.trim(),role,subjects:subjects||'',profile_image:profile_image||'',sample_url:sample_url||'',credential_tags:credential_tags||[],status:'pending',commission_rate:null,total_earnings:0,pending_payout:0,paid_out:0,verified_badge:false,created_at:existing?.created_at||new Date().toISOString(),applied_at:new Date().toISOString()};
+          db.sellers=db.sellers||[];db.sellers.push(seller);save(db);
+          return {seller};
+        }
+        // ── تقييمات موثّقة ──
+        case 'auth:add-review': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const {material_id,rating,content}=payload;
+          if(!material_id) throw new Error('المادة مطلوبة.');
+          if(!rating||rating<1||rating>5) throw new Error('التقييم 1-5.');
+          if(!content?.trim()) throw new Error('يرجى كتابة تعليق.');
+          const verified=(db.orders||[]).some(o=>o.user_id===me.id&&o.material_id===material_id&&o.status==='approved');
+          if(!verified) throw new Error('يمكن التقييم فقط بعد إتمام شراء المادة.');
+          if((db.verified_reviews||[]).find(r=>r.user_id===me.id&&r.material_id===material_id)) throw new Error('قيّمتِ هذه المادة من قبل.');
+          const mat=(db.materials||[]).find(m=>m.id===material_id);
+          const review={id:uid('vr'),user_id:me.id,user_name:me.name,user_gender:me.gender,material_id,seller_id:mat?.seller_id||null,rating:parseInt(rating,10),content:content.trim(),status:'visible',created_at:new Date().toISOString()};
+          db.verified_reviews=db.verified_reviews||[];db.verified_reviews.push(review);save(db);
+          return {review};
+        }
+        case 'auth:my-reviews': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          return {reviews:(db.verified_reviews||[]).filter(r=>r.user_id===me.id)};
+        }
+        // ── أسئلة ──
+        case 'content:ask-question': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const {material_id,question}=payload;
+          if(!material_id||!question?.trim()) throw new Error('السؤال مطلوب.');
+          const qa={id:uid('qa'),material_id,user_id:me.id,user_name:me.name,question:question.trim(),answer:'',status:'pending',created_at:new Date().toISOString()};
+          db.qa=db.qa||[];db.qa.push(qa);save(db);
+          return {qa};
+        }
+        case 'auth:logout': return {ok:true};
+        case 'orders:create': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          let amount=0,currency='BHD',plan_id=null,material_id=null,type='',seller_id=null,commission_amount=0,seller_payout=0;
+          if(payload.plan_id){const plan=(db.plans||[]).find(p=>p.id===payload.plan_id);if(!plan) throw new Error('الخطة غير موجودة.');amount=Number(plan.price)||0;currency=plan.currency||'BHD';plan_id=plan.id;type='subscription';}
+          else if(payload.material_id){const m=(db.materials||[]).find(x=>x.id===payload.material_id);if(!m) throw new Error('المحتوى غير موجود.');if(!m.is_locked) throw new Error('مجاني.');amount=Number(m.individual_price)||0;currency=m.currency||'BHD';material_id=m.id;type='purchase';
+            if(m.seller_id){const s=(db.sellers||[]).find(x=>x.id===m.seller_id);if(s&&s.status==='approved'){seller_id=s.id;const rate=s.commission_rate!=null?s.commission_rate:0.20;commission_amount=Math.round(amount*rate*1000)/1000;seller_payout=Math.round((amount-commission_amount)*1000)/1000;}}
+          } else throw new Error('حددي خطة أو ملف.');
+          let coupon_id=null,discount_amount=0;
+          if(payload.coupon_code){const c=(db.coupons||[]).find(x=>x.code.toLowerCase()===payload.coupon_code.toLowerCase().trim()&&x.is_active);if(!c) throw new Error('كود الخصم غير صحيح.');if(c.expires_at&&new Date(c.expires_at)<new Date()) throw new Error('انتهت صلاحية الكود.');if(c.max_uses&&c.used_count>=c.max_uses) throw new Error('استُنفد الكود.');coupon_id=c.id;discount_amount=c.discount_type==='percent'?Math.round(amount*c.discount_value/100*1000)/1000:Math.min(amount,Number(c.discount_value));amount=Math.max(0,amount-discount_amount);if(seller_id){const rate=0.20;commission_amount=Math.round(amount*rate*1000)/1000;seller_payout=Math.round((amount-commission_amount)*1000)/1000;}}
+          if(!payload.payment_method) throw new Error('اختر طريقة الدفع.');
+          const dup=(db.orders||[]).find(o=>o.user_id===me.id&&o.status==='pending'&&((type==='subscription'&&o.plan_id===plan_id)||(type==='purchase'&&o.material_id===material_id)));
+          if(dup) throw new Error('لديك طلب معلّق.');
+          const order={id:uid('o'),user_id:me.id,user_name:me.name,user_email:me.email,user_gender:me.gender,type,plan_id,material_id,seller_id,commission_amount,seller_payout,amount,currency,original_amount:amount+discount_amount,discount_amount,coupon_id,payment_method:payload.payment_method,receipt_image_data:payload.receipt_image_data||'',receipt_text:(payload.receipt_text||'').slice(0,500),status:'pending',created_at:new Date().toISOString()};
+          db.orders=db.orders||[];db.orders.push(order);
+          if(coupon_id){const c=(db.coupons||[]).find(x=>x.id===coupon_id);if(c){c.used_count=(c.used_count||0)+1;}}
+          save(db);
+          const safe={...order};delete safe.receipt_image_data;return {order:safe};
+        }
+        case 'orders:my-orders': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          return {orders:(db.orders||[]).filter(o=>o.user_id===me.id).map(o=>{const s={...o};delete s.receipt_image_data;return s;})};
+        }
+        case 'orders:cancel': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const o=(db.orders||[]).find(x=>x.id===payload.id);
+          if(!o||o.user_id!==me.id) throw new Error('الطلب غير موجود.');
+          if(o.status!=='pending') throw new Error('لا يمكن الإلغاء.');
+          o.status='cancelled';save(db);return {ok:true};
+        }
+        // ── SELLER ──
+        case 'seller:stats': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          if(seller.status==='pending') throw new Error('طلبك قيد المراجعة.');
+          if(seller.status==='rejected') throw new Error('لم تتم الموافقة.');
+          if(seller.status==='blocked') throw new Error('تم تعطيل حسابك.');
+          const myMaterials=(db.materials||[]).filter(m=>m.seller_id===seller.id);
+          const myOrders=(db.orders||[]).filter(o=>o.seller_id===seller.id);
+          const approvedOrders=myOrders.filter(o=>o.status==='approved');
+          return {stats:{materials_total:myMaterials.length,materials_approved:myMaterials.filter(m=>m.seller_status==='approved'&&m.is_published!==false).length,materials_pending:myMaterials.filter(m=>m.seller_status==='pending').length,materials_rejected:myMaterials.filter(m=>m.seller_status==='rejected').length,orders_total:myOrders.length,orders_pending:myOrders.filter(o=>o.status==='pending').length,orders_approved:approvedOrders.length,total_earnings:seller.total_earnings||0,pending_payout:seller.pending_payout||0,paid_out:seller.paid_out||0,commission_rate:seller.commission_rate},revenue_last7:[],seller:{id:seller.id,display_name:seller.display_name,bio:seller.bio,profile_image:seller.profile_image,subjects:seller.subjects,commission_rate:seller.commission_rate,created_at:seller.created_at}};
+        }
+        case 'seller:my-materials': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          const myMaterials=(db.materials||[]).filter(m=>m.seller_id===seller.id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
+          const orders=db.orders||[];
+          return {materials:myMaterials.map(m=>({...m,orders_count:orders.filter(o=>o.material_id===m.id).length,sales_count:orders.filter(o=>o.material_id===m.id&&o.status==='approved').length}))};
+        }
+        case 'seller:save-material': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          const item=payload.item;
+          if(!item.title?.trim()) throw new Error('يرجى إدخال العنوان.');
+          if(!item.file_url?.trim()) throw new Error('يرجى إدخال رابط الملف.');
+          item.seller_id=seller.id;item.seller_status='pending';item.is_published=true;
+          item.is_locked=true;if(!item.access)item.access='individual';if(!item.individual_price||item.individual_price<=0)item.individual_price=1;if(!item.currency)item.currency='BHD';
+          if(item.id){const existing=(db.materials||[]).find(m=>m.id===item.id);if(!existing||existing.seller_id!==seller.id) throw new Error('لا تملك صلاحية.');const updated={...existing,...item,seller_status:'pending'};db.materials=db.materials.map(m=>m.id===item.id?updated:m);save(db);return {item:updated};}
+          else{item.id=uid('m');item.slug=(item.title||'content').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);item.view_count=0;item.created_at=new Date().toISOString();db.materials=db.materials||[];db.materials.push(item);save(db);return {item};}
+        }
+        case 'seller:delete-material': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          db.materials=(db.materials||[]).filter(m=>!(m.id===payload.id&&m.seller_id===seller.id));save(db);return {ok:true};
+        }
+        // ── باقات البائع ──
+        case 'seller:my-bundles': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          return {bundles:(db.bundles||[]).filter(b=>b.seller_id===seller.id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))};
+        }
+        case 'seller:save-bundle': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          const item=payload.item;
+          if(!item.title?.trim()) throw new Error('يرجى إدخال عنوان الباقة.');
+          if(!item.materials||!Array.isArray(item.materials)||item.materials.length<2) throw new Error('الباقة تحتاج مادتين على الأقل.');
+          item.seller_id=seller.id;item.seller_status='pending';item.is_published=true;
+          if(item.id){const existing=(db.bundles||[]).find(b=>b.id===item.id);if(!existing||existing.seller_id!==seller.id) throw new Error('لا تملك صلاحية.');const updated={...existing,...item,seller_status:'pending'};db.bundles=db.bundles.map(b=>b.id===item.id?updated:b);save(db);return {item:updated};}
+          else{item.id=uid('bdl');item.created_at=new Date().toISOString();db.bundles=db.bundles||[];db.bundles.push(item);save(db);return {item};}
+        }
+        case 'seller:delete-bundle': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          db.bundles=(db.bundles||[]).filter(b=>!(b.id===payload.id&&b.seller_id===seller.id));save(db);return {ok:true};
+        }
+        // ── كوبونات البائع ──
+        case 'seller:my-coupons': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          return {coupons:(db.coupons||[]).filter(c=>c.seller_id===seller.id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))};
+        }
+        case 'seller:save-coupon': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          const maxDiscount=db.settings?.max_seller_discount_percent||30;
+          const item=payload.item;
+          if(!item.code?.trim()) throw new Error('يرجى إدخال كود الكوبون.');
+          if(item.discount_type==='percent'&&Number(item.discount_value)>maxDiscount) throw new Error(`الحد الأقصى للخصم ${maxDiscount}%.`);
+          item.seller_id=seller.id;item.code=item.code.trim().toUpperCase();
+          if(item.id){const existing=(db.coupons||[]).find(c=>c.id===item.id);if(!existing||existing.seller_id!==seller.id) throw new Error('لا تملك صلاحية.');const updated={...existing,...item};db.coupons=db.coupons.map(c=>c.id===item.id?updated:c);save(db);return {item:updated};}
+          else{item.id=uid('cpn');item.used_count=0;item.is_active=item.is_active!==false;item.created_at=new Date().toISOString();db.coupons=db.coupons||[];db.coupons.push(item);save(db);return {item};}
+        }
+        case 'seller:delete-coupon': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          db.coupons=(db.coupons||[]).filter(c=>!(c.id===payload.id&&c.seller_id===seller.id));save(db);return {ok:true};
+        }
+        // ── بثوث البائع ──
+        case 'seller:my-meets': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          return {meets:(db.meets||[]).filter(m=>m.seller_id===seller.id).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0))};
+        }
+        case 'seller:save-meet': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          const item=payload.item;
+          if(!item.title?.trim()) throw new Error('يرجى إدخال عنوان البث.');
+          if(!item.url?.trim()) throw new Error('يرجى إدخال رابط البث.');
+          item.seller_id=seller.id;item.seller_status='pending';item.is_published=true;
+          if(item.girls_only===undefined) item.girls_only=false;
+          if(item.id){const existing=(db.meets||[]).find(m=>m.id===item.id);if(!existing||existing.seller_id!==seller.id) throw new Error('لا تملك صلاحية.');const updated={...existing,...item,seller_status:'pending'};db.meets=db.meets.map(m=>m.id===item.id?updated:m);save(db);return {item:updated};}
+          else{item.id=uid('mt');item.created_at=new Date().toISOString();db.meets=db.meets||[];db.meets.push(item);save(db);return {item};}
+        }
+        case 'seller:delete-meet': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          db.meets=(db.meets||[]).filter(m=>!(m.id===payload.id&&m.seller_id===seller.id));save(db);return {ok:true};
+        }
+        case 'seller:my-orders': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('يرجى تسجيل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          return {orders:(db.orders||[]).filter(o=>o.seller_id===seller.id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).map(o=>{const s={...o};delete s.receipt_image_data;return s;})};
+        }
+        case 'seller:request-payout': {
+          const me=_cu(db,payload.token);
+          if(!me) throw new Error('سجّل الدخول.');
+          const seller=(db.sellers||[]).find(s=>s.user_id===me.id);
+          if(!seller) throw new Error('لا تملك حساب بائع.');
+          if(seller.pending_payout<5) throw new Error('الحد الأدنى 5 دنانير.');
+          return {request:{id:uid('pr'),seller_id:seller.id,amount:seller.pending_payout,status:'pending',created_at:new Date().toISOString()}};
+        }
+        // ── ADMIN ──
+        case 'admin:login': {
+          const en=(payload.email||'').toLowerCase().trim();
+          const a=(db.admins||[]).find(x=>x.email===en);
+          if(!a||a.password!==payload.password) throw new Error('بيانات الإدارة غير صحيحة.');
+          return {token:'demo.admin.'+en,admin:{email:a.email}};
+        }
+        case 'admin:me': {
+          const t=payload.token||localStorage.getItem(ADMIN_TOKEN_KEY);
+          if(!t||!t.startsWith('demo.admin')) throw new Error('انتهت الجلسة.');
+          return {admin:{email:t.replace('demo.admin.','')}};
+        }
+        case 'admin:stats': {
+          const approved=(db.orders||[]).filter(o=>o.status==='approved');
+          const pending=(db.orders||[]).filter(o=>o.status==='pending');
+          const activeSubs=(db.subscriptions||[]).filter(s=>s.status==='active'&&new Date(s.expires_at)>new Date());
+          const approvedSellers=(db.sellers||[]).filter(s=>s.status==='approved');
+          const pendingSellers=(db.sellers||[]).filter(s=>s.status==='pending');
+          return {stats:{users:(db.users||[]).length,users_female:(db.users||[]).filter(u=>u.gender==='female').length,users_male:(db.users||[]).filter(u=>u.gender==='male').length,users_blocked:(db.users||[]).filter(u=>u.status==='blocked').length,materials:(db.materials||[]).length,materials_published:(db.materials||[]).filter(m=>m.is_published!==false).length,pending_seller_materials:(db.materials||[]).filter(m=>m.seller_status==='pending').length,subjects:(db.subjects||[]).length,tags:(db.tags||[]).length,plans:(db.plans||[]).length,orders_pending:pending.length,orders_total:(db.orders||[]).length,orders_approved:approved.length,reviews:(db.reviews||[]).length,reviews_visible:(db.reviews||[]).filter(r=>r.is_visible).length,subscriptions_active:activeSubs.length,subscriptions_expiring:0,purchases:(db.purchases||[]).length,meets_upcoming:(db.meets||[]).filter(m=>!m.scheduled_at||new Date(m.scheduled_at)>new Date()).length,revenue:approved.reduce((a,o)=>a+Number(o.amount||0),0),revenue_pending:pending.reduce((a,o)=>a+Number(o.amount||0),0),total_commission:approved.reduce((a,o)=>a+Number(o.commission_amount||0),0),sellers_total:(db.sellers||[]).length,sellers_approved:approvedSellers.length,sellers_pending:pendingSellers.length,coupons:(db.coupons||[]).length,coupons_active:(db.coupons||[]).filter(c=>c.is_active).length,pending_payouts:(db.sellers||[]).reduce((a,s)=>a+Number(s.pending_payout||0),0)},revenue_last7:[],top_materials:[...(db.materials||[])].sort((a,b)=>(b.view_count||0)-(a.view_count||0)).slice(0,5).map(m=>({id:m.id,title:m.title,views:m.view_count||0,type:m.type,seller_id:m.seller_id})),recent_orders:(db.orders||[]).slice(-8).reverse().map(o=>{const s={...o};delete s.receipt_image_data;return s;}),recent_activity:(db.activity_log||[]).slice(-12).reverse()};
+        }
+        case 'admin:list': {
+          const w=payload.what;
+          if(w==='settings') return {items:db.settings||{}};
+          let items=(db[w]||[]).slice();
+          if(w==='orders') items=items.map(o=>{const s={...o};delete s.receipt_image_data;return s;});
+          if(w==='users') items=items.map(u=>{const s={...u};delete s.password;return s;});
+          return {items};
+        }
+        case 'admin:save': {
+          const w=payload.what;
+          if(w==='settings'){db.settings={...(db.settings||{}),...(payload.settings||payload.item)};save(db);return {settings:db.settings};}
+          db[w]=db[w]||[];const item=payload.item;
+          if(item.id){const idx=db[w].findIndex(x=>x.id===item.id);if(idx>=0) db[w][idx]={...db[w][idx],...item};else db[w].push(item);}
+          else{const pfx={materials:'m',subjects:'s',plans:'p',reviews:'r',meets:'mt',tags:'t',coupons:'c'}[w]||'i';item.id=uid(pfx);if(w==='materials'&&!item.slug)item.slug=(item.title||'content').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);if(w==='subjects'&&!item.slug)item.slug=(item.name||'subject').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);if(w==='tags'&&!item.slug)item.slug=(item.name||'tag').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);if(w==='coupons'&&!item.code)item.code=String(item.code||'').toUpperCase();if(!item.created_at)item.created_at=new Date().toISOString();if(w==='materials'){item.view_count=0;if(item.is_published===undefined)item.is_published=true;}if(w==='coupons'){item.used_count=0;if(item.is_active===undefined)item.is_active=true;}db[w].push(item);}
+          save(db);return {item};
+        }
+        case 'admin:delete': {db[payload.what]=(db[payload.what]||[]).filter(x=>x.id!==payload.id);save(db);return {ok:true};}
+        case 'admin:reorder': {const ids=payload.ids||[];for(let i=0;i<ids.length;i++){const it=(db[payload.what]||[]).find(x=>x.id===ids[i]);if(it) it.sort_order=i+1;}save(db);return {ok:true};}
+        case 'admin:get-order': {const o=(db.orders||[]).find(x=>x.id===payload.id);if(!o) throw new Error('الطلب غير موجود.');return {order:o};}
+        case 'admin:order-decide': {
+          const o=(db.orders||[]).find(x=>x.id===payload.id);
+          if(!o) throw new Error('الطلب غير موجود.');
+          if(o.status!=='pending') throw new Error('تمت المراجعة.');
+          o.status=payload.decision;o.decided_at=new Date().toISOString();o.admin_notes=(payload.notes||'').slice(0,500);
+          if(payload.decision==='approved'){
+            if(o.type==='subscription'){const plan=(db.plans||[]).find(p=>p.id===o.plan_id);const expires=new Date(Date.now()+(plan?.duration_days||30)*86400000).toISOString();const idx=(db.subscriptions||[]).findIndex(s=>s.user_id===o.user_id);const sub={user_id:o.user_id,plan_id:o.plan_id,started_at:new Date().toISOString(),expires_at:expires,status:'active',order_id:o.id};if(idx>=0) db.subscriptions[idx]=sub;else{sub.id=uid('sub');db.subscriptions.push(sub);}}
+            else if(o.type==='purchase'){if(!(db.purchases||[]).find(p=>p.user_id===o.user_id&&p.material_id===o.material_id))db.purchases.push({id:uid('pur'),user_id:o.user_id,material_id:o.material_id,order_id:o.id,purchased_at:new Date().toISOString()});}
+            if(o.seller_id&&o.seller_payout>0){const s=(db.sellers||[]).find(x=>x.id===o.seller_id);if(s){s.pending_payout=(s.pending_payout||0)+o.seller_payout;s.total_earnings=(s.total_earnings||0)+o.seller_payout;_notify(db,s.user_id,'order_approved','تم قبول طلب على مادتكِ',`طلب جديد بقيمة ${o.seller_payout} ${o.currency}.`);}}
+            _notify(db,o.user_id,'order_approved','تم تفعيل طلبك',o.type==='subscription'?'تم تفعيل اشتراكك.':'تم تأكيد شرائك.');
+          } else if(payload.decision==='rejected'){_notify(db,o.user_id,'order_rejected','تم رفض طلبك',payload.notes?('السبب: '+payload.notes):'');}
+          save(db);return {order:{...o,receipt_image_data:undefined}};
+        }
+        case 'admin:toggle-user-status': {const u=(db.users||[]).find(x=>x.id===payload.id);if(!u) throw new Error('غير موجود.');u.status=u.status==='blocked'?'active':'blocked';save(db);const safe={...u};delete safe.password;return {user:safe};}
+        case 'admin:extend-subscription': {const days=parseInt(payload.days,10);if(!days) throw new Error('أيام غير صحيحة.');let sub=(db.subscriptions||[]).find(s=>s.user_id===payload.user_id);const baseFrom=sub&&sub.status==='active'&&new Date(sub.expires_at)>new Date()?new Date(sub.expires_at):new Date();const expires=new Date(baseFrom.getTime()+days*86400000).toISOString();const newSub={user_id:payload.user_id,plan_id:payload.plan_id,started_at:sub?.started_at||new Date().toISOString(),expires_at:expires,status:'active',manual:true};if(sub?.id) newSub.id=sub.id;else{newSub.id=uid('sub');db.subscriptions=db.subscriptions||[];db.subscriptions.push(newSub);}db.subscriptions=db.subscriptions.map(s=>s.id===newSub.id?newSub:s);save(db);return {subscription:newSub};}
+        case 'admin:save-settings': {db.settings={...(db.settings||{}),...payload.settings};if(payload.settings?.admin_email){const ne=payload.settings.admin_email.toLowerCase().trim();db.admins=db.admins||[];const a=db.admins[0]||{email:ne,password:'admin123'};a.email=ne;if(payload.settings.admin_password&&payload.settings.admin_password.length>=6) a.password=payload.settings.admin_password;db.admins[0]=a;db.settings.admin_email=ne;}save(db);return {settings:db.settings};}
+        case 'admin:decide-seller': {const s=(db.sellers||[]).find(x=>x.id===payload.id);if(!s) throw new Error('البائع غير موجود.');s.status=payload.decision;if(payload.decision==='approved'){s.approved_at=new Date().toISOString();if(s.commission_rate==null) s.commission_rate=db.settings?.default_commission_rate??0.20;if(payload.commission_rate!=null) s.commission_rate=payload.commission_rate;_notify(db,s.user_id,'seller_approved','تمت الموافقة على طلبك',`أهلاً بك في فريق البائعين! نسبة العمولة: ${Math.round(s.commission_rate*100)}%.`);}else if(payload.decision==='rejected'){s.rejection_reason=payload.reason||'';_notify(db,s.user_id,'seller_rejected','تحديث طلب البائع',payload.reason?('السبب: '+payload.reason):'');}save(db);return {seller:s};}
+        case 'admin:update-seller-commission': {const s=(db.sellers||[]).find(x=>x.id===payload.id);if(!s) throw new Error('غير موجود.');s.commission_rate=parseFloat(payload.commission_rate);save(db);return {seller:s};}
+        case 'admin:decide-seller-material': {const m=(db.materials||[]).find(x=>x.id===payload.id);if(!m) throw new Error('غير موجود.');m.seller_status=payload.decision;if(payload.decision==='rejected') m.rejection_reason=payload.reason||'';save(db);if(m.seller_id){const s=(db.sellers||[]).find(x=>x.id===m.seller_id);if(s) _notify(db,s.user_id,payload.decision==='approved'?'material_approved':'material_rejected',payload.decision==='approved'?'تمت الموافقة على مادتكِ':'تم رفض مادتكِ',payload.decision==='approved'?`تمت الموافقة على "${m.title}".`:`${payload.reason?('السبب: '+payload.reason):''}`);}return {material:m};}
+        case 'admin:mark-payout-paid': {const s=(db.sellers||[]).find(x=>x.id===payload.id);if(!s) throw new Error('غير موجود.');const amount=Number(payload.amount)||s.pending_payout;s.paid_out=(s.paid_out||0)+amount;s.pending_payout=Math.max(0,(s.pending_payout||0)-amount);s.last_payout_at=new Date().toISOString();save(db);_notify(db,s.user_id,'payout_paid','تم تحويل دفعتك',`تم تحويل ${amount} ${payload.currency||'BHD'}.`);return {seller:s};}
+        case 'admin:toggle-seller-verified': {const s=(db.sellers||[]).find(x=>x.id===payload.id);if(!s) throw new Error('غير موجود.');s.verified_badge=!s.verified_badge;save(db);return {seller:s};}
+        case 'admin:decide-seller-bundle': {const b=(db.bundles||[]).find(x=>x.id===payload.id);if(!b) throw new Error('غير موجود.');b.seller_status=payload.decision;save(db);return {bundle:b};}
+        case 'admin:decide-seller-meet': {const m=(db.meets||[]).find(x=>x.id===payload.id);if(!m) throw new Error('غير موجود.');m.seller_status=payload.decision;save(db);return {meet:m};}
+        case 'admin:list-verified-reviews': {let list=(db.verified_reviews||[]).slice();if(payload.status) list=list.filter(r=>r.status===payload.status);return {reviews:list};}
+        case 'admin:moderate-review': {const r=(db.verified_reviews||[]).find(x=>x.id===payload.id);if(!r) throw new Error('غير موجود.');r.status=payload.status;save(db);return {review:r};}
+        case 'admin:list-qa': {let list=(db.qa||[]).slice();if(payload.status) list=list.filter(q=>q.status===payload.status);return {qa:list};}
+        case 'admin:answer-qa': {const q=(db.qa||[]).find(x=>x.id===payload.id);if(!q) throw new Error('غير موجود.');q.answer=(payload.answer||'').trim();q.status=q.answer?'answered':'pending';save(db);return {qa:q};}
+        case 'admin:merge-tags': {const materials=db.materials||[];for(const m of materials){if((m.tags||[]).includes(payload.source_id)){m.tags=(m.tags||[]).filter(t=>t!==payload.source_id);if(!m.tags.includes(payload.target_id))m.tags.push(payload.target_id);}}db.tags=(db.tags||[]).filter(t=>t.id!==payload.source_id);save(db);return {ok:true};}
+        case 'admin:save-category': {const item=payload.item;if(!item.id){item.id=uid('cat');item.created_at=new Date().toISOString();}db.categories=db.categories||[];db.categories.push(item);save(db);return {item};}
+        case 'admin:export-data': return {data:{...db,_exported_at:new Date().toISOString(),_version:4}};
+        case 'admin:import-data': {const d=payload.data;const stores=['users','subjects','tags','categories','materials','plans','bundles','orders','subscriptions','purchases','reviews','verified_reviews','qa','meets','sellers','coupons','payouts','notifications'];for(const s of stores)if(Array.isArray(d[s])) db[s]=d[s];if(d.settings) db.settings=d.settings;save(db);return {ok:true};}
+        case 'admin:reset-all': {reset();return {ok:true};}
+        default: throw new Error('غير معروف: '+fn+':'+action);
+      }
+    }
+    return {handle,seed,reset};
+  })();
+
+  let _demoMode=null;
+  async function call(fn,payload={}){
+    const token=(fn==='admin'?getAdminToken():getToken());
+    const body={...payload};
+    if(token&&!body.token) body.token=token;
+    if(_demoMode===true) return DEMO_IMPL.handle(fn,body.action||'',body);
+    let res,json;
+    try{res=await fetch(`${API_BASE}/${fn}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
+    catch(_){_demoMode=true;return DEMO_IMPL.handle(fn,body.action||'',body);}
+    if(res.status===404){_demoMode=true;return DEMO_IMPL.handle(fn,body.action||'',body);}
+    try{json=await res.json();}catch(_){json={};}
+    if(!res.ok) throw new Error(json.error||'حدث خطأ.');
+    return json;
+  }
+  function isDemoMode(){return _demoMode===true;}
+
+  function getToken(){return localStorage.getItem(TOKEN_KEY)||'';}
+  function setToken(t){localStorage.setItem(TOKEN_KEY,t);}
+  function clearToken(){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(USER_CACHE_KEY);}
+  function isLoggedIn(){const t=getToken();if(!t) return false;if(t.startsWith('demo.admin')) return false;try{const[p]=t.split('.');const pl=JSON.parse(atob(p));return pl.role==='user';}catch(_){return true;}}
+
+  function getAdminToken(){return localStorage.getItem(ADMIN_TOKEN_KEY)||'';}
+  function setAdminToken(t){localStorage.setItem(ADMIN_TOKEN_KEY,t);}
+  function clearAdminToken(){localStorage.removeItem(ADMIN_TOKEN_KEY);}
+  function isAdminLoggedIn(){const t=getAdminToken();if(!t) return false;if(t.startsWith('demo.admin')) return true;try{const[p]=t.split('.');const pl=JSON.parse(atob(p));return pl.role==='admin';}catch(_){return false;}}
+
+  function cacheUser(u){localStorage.setItem(USER_CACHE_KEY,JSON.stringify(u||{}));}
+  function cachedUser(){try{return JSON.parse(localStorage.getItem(USER_CACHE_KEY)||'null');}catch(_){return null;}}
+
+  async function logout(){try{await call('auth',{action:'logout'});}catch(_){}clearToken();window.location.href='index.html';}
+  async function adminLogout(){try{await call('admin',{action:'logout'});}catch(_){}clearAdminToken();window.location.href='login.html';}
+
+  async function requireAuth(){if(!isLoggedIn()){redirectToLogin();return null;}try{const d=await call('auth',{action:'me'});cacheUser(d.customer);return d;}catch(_){clearToken();redirectToLogin();return null;}}
+  async function requireAdmin(){if(!isAdminLoggedIn()){window.location.href='login.html';return null;}try{return await call('admin',{action:'me'});}catch(_){clearAdminToken();window.location.href='login.html';return null;}}
+
+  function redirectToLogin(){const n=encodeURIComponent(window.location.pathname+window.location.search);window.location.href=`login.html?next=${n}`;}
+
+  let settingsCache=null;
+  async function loadSettings(){
+    if(settingsCache) return settingsCache;
+    try{const d=await call('content',{action:'settings'});settingsCache=d.settings||{};}catch(_){settingsCache={};}
+    applySettings(settingsCache);
+    return settingsCache;
+  }
+  function applySettings(s){
+    if(s.theme_color&&s.theme_color!=='#e7a93d'){
+      document.documentElement.style.setProperty('--honey',s.theme_color);
+      document.documentElement.style.setProperty('--honey-deep',darken(s.theme_color,20));
+    }
+    if(s.theme_mode==='light') document.body.classList.add('paper-mode');
+    // الشعار
+    if(s.site_logo){
+      document.querySelectorAll('.brand').forEach(brand=>{
+        if(brand.querySelector('img.logo')) return; // already applied
+        const dot=brand.querySelector('.dot');
+        if(dot){
+          const img=document.createElement('img');
+          img.src=s.site_logo;
+          img.className='logo';
+          img.alt=s.site_name||'منصة';
+          if(s.site_logo_size) img.style.height=s.site_logo_size+'px';
+          dot.replaceWith(img);
+        }
+      });
+    }
+    // اسم الموقع
+    document.querySelectorAll('[data-site]').forEach(el=>{const k=el.getAttribute('data-site');if(s[k]!==undefined&&s[k]!==null&&s[k]!=='') el.textContent=s[k];});
+    if(s.announcement_active&&s.announcement_text){
+      let bar=document.getElementById('announcement-bar');
+      if(!bar){bar=document.createElement('div');bar.id='announcement-bar';document.body.insertBefore(bar,document.body.firstChild);}
+      if(s.announcement_color) bar.style.background=`linear-gradient(180deg,${s.announcement_color},${darken(s.announcement_color,20)})`;
+      else bar.style.background='linear-gradient(180deg,var(--honey),var(--honey-deep))';
+      bar.style.color='#20150a';
+      bar.textContent=s.announcement_text;
+    }
+    // إخفاء الأقسام
+    ['subjects','latest','plans','reviews','faq','sellers','stats'].forEach(sec=>{
+      if(s['show_'+sec+'_section']===false){const el=document.getElementById(sec+'Section');if(el) el.style.display='none';}
+    });
+    if(s.custom_css){let st=document.getElementById('custom-css');if(!st){st=document.createElement('style');st.id='custom-css';document.head.appendChild(st);}st.textContent=s.custom_css;}
+  }
+  function darken(hex,p){const n=parseInt(hex.replace('#',''),16);const r=Math.max(0,(n>>16)-Math.round(255*p/100));const g=Math.max(0,((n>>8)&0xFF)-Math.round(255*p/100));const b=Math.max(0,(n&0xFF)-Math.round(255*p/100));return '#'+((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');}
+
+  function ensureToastHost(){let h=document.getElementById('toast-host');if(!h){h=document.createElement('div');h.id='toast-host';document.body.appendChild(h);}return h;}
+  function toast(m,t='default',ms=3200){const h=ensureToastHost();const e=document.createElement('div');e.className=`toast ${t}`;e.textContent=m;h.appendChild(e);setTimeout(()=>e.remove(),ms);}
+
+  function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function formatMoney(a,c='BHD'){const n=Number(a||0);const sym=c==='BHD'?'د.ب':c==='SAR'?'ر.س':c==='EGP'?'ج.م':c==='USD'?'$':c;return `${n.toFixed(3)} ${sym}`;}
+  function formatDate(iso){if(!iso) return '—';try{return new Date(iso).toLocaleDateString('ar-BH',{year:'numeric',month:'long',day:'numeric'});}catch(_){return iso;}}
+  function formatDateTime(iso){if(!iso) return '—';try{return new Date(iso).toLocaleString('ar-BH',{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}catch(_){return iso;}}
+  function timeAgo(iso){if(!iso) return '—';const d=Date.now()-new Date(iso).getTime();const s=Math.floor(d/1000);if(s<60) return 'قبل لحظات';const m=Math.floor(s/60);if(m<60) return `قبل ${m} دقيقة`;const h=Math.floor(m/60);if(h<24) return `قبل ${h} ساعة`;const dy=Math.floor(h/24);if(dy<30) return `قبل ${dy} يوم`;return formatDate(iso);}
+  function typeColorVar(t){return `var(${TYPE_COLOR_VAR[t]||'--tag-other'})`;}
+  function fileTypeIcon(ft){return FILE_TYPE_ICONS[ft]||'fa-solid fa-file';}
+  function fileTypeLabel(ft){return FILE_TYPE_LABELS[ft]||'ملف';}
+  function stars(n){n=Math.max(0,Math.min(5,Math.round(n||0)));return '★'.repeat(n)+'☆'.repeat(5-n);}
+  function fileToBase64(f,maxKb=800){return new Promise((res,rej)=>{if(f.size>maxKb*1024){const img=new Image();const r=new FileReader();r.onload=()=>{img.src=r.result;};r.onerror=()=>rej(new Error('قراءة فاشلة.'));img.onload=()=>{const c=document.createElement('canvas');const r2=Math.min(1,1200/Math.max(img.width,img.height));c.width=img.width*r2;c.height=img.height*r2;c.getContext('2d').drawImage(img,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',0.85));};img.onerror=()=>rej(new Error('معالجة فاشلة.'));}else{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('قراءة فاشلة.'));r.readAsDataURL(f);}});}
+  function qs(n){return new URLSearchParams(window.location.search).get(n);}
+  function debounce(fn,w=300){let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),w);};}
+  function copyToClipboard(t){if(navigator.clipboard) return navigator.clipboard.writeText(t);return new Promise((res,rej)=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');res();}catch(e){rej(e);}ta.remove();});}
+
+  // ── سجلّ المشاهدات الحديثة (localStorage) ──
+  function trackRecentView(materialId, title, slug){
+    try{
+      const key='platform_recent_views';
+      let list=JSON.parse(localStorage.getItem(key)||'[]');
+      list=list.filter(x=>x.id!==materialId);
+      list.unshift({id:materialId,title,slug,ts:Date.now()});
+      list=list.slice(0,8);
+      localStorage.setItem(key,JSON.stringify(list));
+    }catch(_){}
+  }
+  function getRecentViews(){
+    try{return JSON.parse(localStorage.getItem('platform_recent_views')||'[]');}catch(_){return[];}
+  }
+
+  function initHeader(){
+    const tg=document.querySelector('.nav-toggle');
+    const nv=document.querySelector('.main-nav');
+    if(tg&&nv) tg.addEventListener('click',()=>nv.classList.toggle('open'));
+    document.querySelectorAll('[data-auth="guest"]').forEach(el=>el.style.display=isLoggedIn()?'none':'');
+    document.querySelectorAll('[data-auth="member"]').forEach(el=>el.style.display=isLoggedIn()?'':'none');
+    document.querySelectorAll('[data-action="logout"]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();logout();}));
+    const cur=window.location.pathname.split('/').pop()||'index.html';
+    document.querySelectorAll('.main-nav a, .bottom-nav a').forEach(a=>{a.classList.toggle('active',a.getAttribute('href')===cur);});
+    setTimeout(()=>{if(isDemoMode()){const b=document.createElement('div');b.style.cssText='position:fixed;bottom:80px;right:14px;background:#e7a93d;color:#20150a;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:600;z-index:300;';b.innerHTML='<i class="fa-solid fa-flask"></i> معاينة';document.body.appendChild(b);}},1500);
+    // عدّاد الإشعارات
+    if(isLoggedIn()){
+      call('auth',{action:'me'}).then(d=>{
+        if(d.unread_notifications>0){
+          const notifBtn=document.getElementById('notifBtn');
+          if(notifBtn){
+            const cnt=document.createElement('span');cnt.className='count';cnt.textContent=d.unread_notifications;
+            notifBtn.appendChild(cnt);
+          }
+        }
+      }).catch(()=>{});
+    }
+  }
+  document.addEventListener('DOMContentLoaded',()=>{initHeader();loadSettings();});
+
+  return {
+    call,getToken,setToken,clearToken,isLoggedIn,getAdminToken,setAdminToken,clearAdminToken,isAdminLoggedIn,adminLogout,
+    cacheUser,cachedUser,logout,requireAuth,requireAdmin,redirectToLogin,loadSettings,applySettings,
+    toast,escapeHtml,formatMoney,formatDate,formatDateTime,timeAgo,typeColorVar,fileTypeIcon,fileTypeLabel,stars,fileToBase64,qs,debounce,copyToClipboard,
+    trackRecentView,getRecentViews,initHeader,
+    isDemoMode,DEMO:DEMO_IMPL,TYPE_COLOR_VAR,FILE_TYPE_ICONS,FILE_TYPE_LABELS,
+  };
+})();
+window.Site=Site;
+
+  </script>
+  <script>
+  // تهيئة الصفحة
+  Site.loadSettings();
+  
+  // إعادة توجيه إذا كان مسجلاً بالفعل
+  if(Site.isAdminLoggedIn()){
+    window.location.replace('index.html');
+  }
+
+  // إظهار/إخفاء كلمة المرور
+  document.getElementById('pwdToggle').addEventListener('click',function(){
+    const inp=document.getElementById('password');
+    const icon=this.querySelector('i');
+    if(inp.type==='password'){inp.type='text';icon.className='fa-solid fa-eye-slash';}
+    else{inp.type='password';icon.className='fa-solid fa-eye';}
+  });
+
+  // معالجة تسجيل الدخول
+  document.getElementById('loginForm').addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    const msg=document.getElementById('msg');
+    const btn=document.getElementById('loginBtn');
+    const overlay=document.getElementById('loadingOverlay');
+    
+    btn.disabled=true;
+    btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> جاري الدخول...';
+    msg.classList.remove('show','error','success');
+    overlay.classList.add('show');
+    
+    try{
+      const email=document.getElementById('email').value.trim();
+      const password=document.getElementById('password').value;
+      
+      if(!email||!password){
+        throw new Error('يرجى إدخال البريد وكلمة المرور.');
+      }
+      
+      const res=await Site.call('admin',{action:'login',email,password});
+      Site.setAdminToken(res.token);
+      
+      msg.innerHTML='<i class="fa-solid fa-circle-check"></i> تم تسجيل الدخول بنجاح! جاري التحويل...';
+      msg.classList.add('show','success');
+      
+      setTimeout(()=>{
+        // قراءة معامل next إن وُجد
+        const params=new URLSearchParams(window.location.search);
+        const next=params.get('next');
+        window.location.href=next||'index.html';
+      },800);
+    }catch(err){
+      msg.innerHTML='<i class="fa-solid fa-circle-exclamation"></i> '+(err.message||'حدث خطأ غير متوقع.');
+      msg.classList.add('show','error');
+      btn.disabled=false;
+      btn.innerHTML='<i class="fa-solid fa-right-to-bracket"></i> دخول';
+      overlay.classList.remove('show');
+    }
+  });
+
+  // السماح بالضغط على Enter في حقل كلمة المرور
+  document.getElementById('password').addEventListener('keypress',(e)=>{
+    if(e.key==='Enter') document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+  });
+  </script>
+</body>
+</html>

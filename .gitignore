@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Netlify build artifacts
+.netlify/
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Lock files (optional)
+# package-lock.json
+deno.lock

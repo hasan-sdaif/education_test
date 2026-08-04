@@ -1,0 +1,16 @@
+{
+  "name": "educational-platform",
+  "version": "4.0.0",
+  "description": "منصة تعليمية لمشاركة المذكرات والملخصات والدروس والفيديوهات مع سوق بائعين، كوبونات، إشعارات، تقييمات متعددة المحاور، ودعم Supabase",
+  "private": true,
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site — no build needed'"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
