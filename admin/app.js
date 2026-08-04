@@ -45,7 +45,19 @@ const App = (() => {
         case 'settings': await loadSettingsIntoForm(); break;
         case 'data': await loadSystemStatus(); break;
       }
-    } catch (err) { Site.toast(err.message, 'error'); }
+    } catch (err) {
+      // رفض صريح من السيرفر (توكن غير صالح فعلاً) أثناء التنقل بين الأقسام
+      // → طرد فعلي لصفحة الدخول. أي خطأ آخر (شبكة، سيرفر مؤقت) → تنبيه فقط،
+      // بدون طرد، حتى لا تُفقد جلسة صالحة بسبب عطل عابر.
+      const msg = err.message || '';
+      if (msg.includes('انتهت الجلسة') || msg.includes('ممنوع')) {
+        Site.clearAdminToken();
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.replace(`login.html?next=${next}`);
+        return;
+      }
+      Site.toast(msg, 'error');
+    }
   }
 
   async function loadSystemStatus() {
@@ -72,9 +84,23 @@ const App = (() => {
     }
   }
 
+  function refreshPreviewModeUI() {
+    const on = Site.isPreviewMode();
+    const ind = document.getElementById('previewModeIndicator');
+    const btn = document.getElementById('previewModeToggle');
+    if (ind) { ind.textContent = on ? 'مفعّل' : 'معطّل'; ind.style.color = on ? 'var(--success)' : ''; }
+    if (btn) btn.innerHTML = on ? '<i class="fa-solid fa-eye-slash"></i> إيقاف' : '<i class="fa-solid fa-eye"></i> تبديل';
+  }
+
   async function init() {
     document.getElementById('year').textContent = new Date().getFullYear();
     document.getElementById('demoModeIndicator').textContent = Site.isDemoMode() ? 'مفعّل' : 'معطّل';
+    refreshPreviewModeUI();
+    document.getElementById('previewModeToggle')?.addEventListener('click', () => {
+      Site.setPreviewMode(!Site.isPreviewMode());
+      refreshPreviewModeUI();
+      Site.toast(Site.isPreviewMode() ? 'تم تفعيل وضع معاينة الموقع — افتحي الصفحة الرئيسية لرؤيتها بأرقام وأشكال تجريبية.' : 'تم إيقاف وضع معاينة الموقع.', 'success');
+    });
     document.querySelectorAll('.admin-side nav button[data-section]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.section)));
     document.getElementById('adminLogout').addEventListener('click', async () => { if (!confirm('متأكدة من الخروج؟')) return; await Site.adminLogout(); });
     document.getElementById('mobileToggle').addEventListener('click', () => { document.getElementById('adminSide').classList.toggle('open'); document.getElementById('backdrop').classList.toggle('open'); });
@@ -948,6 +974,13 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+// رسائل السيرفر التي تعني فعلاً "التوكن غير صالح/منتهي" — أي خطأ آخر
+// (شبكة بطيئة، انقطاع مؤقت، خطأ 500 عابر...) لا يجب أن يطرد المستخدم.
+function isSessionRejection(err) {
+  const msg = (err && err.message) || '';
+  return msg.includes('انتهت الجلسة') || msg.includes('ممنوع');
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   // التحقق من تسجيل الدخول أولاً
   if (!Site.isAdminLoggedIn()) {
@@ -955,14 +988,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.location.replace(`login.html?next=${next}`);
     return;
   }
-  // التحقق من صحة الجلسة عبر الخادم
-  try {
-    await Site.call('admin', { action: 'me' });
-  } catch (e) {
-    // الجلسة غير صالحة - مسح وإعادة توجيه
-    Site.clearAdminToken();
-    const next = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.replace(`login.html?next=${next}`);
+  // التحقق من صحة الجلسة عبر الخادم — مع محاولة ثانية قبل الطرد، لأن أول
+  // طلب بعد الدخول قد يصادف بطء شبكة أو "cold start" عابر في السيرفر،
+  // وهذا لا يعني أن الجلسة فعلاً غير صالحة.
+  let sessionOk = false;
+  let lastErr = null;
+  for (let attempt = 0; attempt < 2 && !sessionOk; attempt++) {
+    try {
+      await Site.call('admin', { action: 'me' });
+      sessionOk = true;
+    } catch (e) {
+      lastErr = e;
+      // رفض صريح من السيرفر (توكن غير صالح فعلاً) → لا داعي لإعادة المحاولة
+      if (isSessionRejection(e)) break;
+      // خطأ عام (شبكة/سيرفر مؤقت) → انتظر لحظة وحاول مرة أخرى
+      if (attempt === 0) await new Promise(r => setTimeout(r, 800));
+    }
+  }
+  if (!sessionOk) {
+    if (isSessionRejection(lastErr)) {
+      // الجلسة غير صالحة فعلاً - مسح وإعادة توجيه
+      Site.clearAdminToken();
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.replace(`login.html?next=${next}`);
+      return;
+    }
+    // فشل عام متكرر (مثلاً لا اتصال بالإنترنت) — لا نمسح التوكن ولا نطرد؛
+    // نعرض رسالة وزر إعادة محاولة بدل حذف الجلسة الصالحة بلا داعٍ.
+    const gate = document.getElementById('authGate');
+    if (gate) {
+      gate.innerHTML = `
+        <div style="color:var(--text-on-dark-dim);text-align:center;padding:0 20px;max-width:320px;">
+          <i class="fa-solid fa-triangle-exclamation" style="font-size:28px;color:var(--honey);margin-bottom:10px;"></i>
+          <p style="margin:0 0 14px;">تعذّر الاتصال بالخادم للتحقق من الجلسة. تأكدي من الاتصال بالإنترنت.</p>
+          <button class="btn btn-primary btn-sm" onclick="window.location.reload()"><i class="fa-solid fa-rotate"></i> إعادة المحاولة</button>
+        </div>`;
+    }
     return;
   }
   // إخفاء شاشة التحقق وإظهار المحتوى
