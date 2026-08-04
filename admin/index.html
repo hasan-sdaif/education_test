@@ -896,9 +896,9 @@ table.data-table tbody tr:hover{background:rgba(255,255,255,.03);}
       <span>© <span id="year"></span> <span data-site="site_name">[اسم الموقع]</span></span>
       <span>وضع المعاينة: <span id="demoModeIndicator">—</span></span>
       <span class="preview-toggle-wrap">
-        وضع معاينة الموقع: <span id="previewModeIndicator">معطّل</span>
-        <button type="button" id="previewModeToggle" class="btn btn-ghost btn-sm" style="margin-inline-start:8px;padding:3px 10px;font-size:11px;" title="عند التفعيل، تظهر أرقام وأشكال تجريبية في الصفحة الرئيسية للموقع لمعاينة التصميم قبل إدخال بيانات حقيقية">
-          <i class="fa-solid fa-eye"></i> تبديل
+        وضع معاينة لوحة التحكم: <span id="previewModeIndicator">معطّل</span>
+        <button type="button" id="previewModeToggle" class="btn btn-ghost btn-sm" style="margin-inline-start:8px;padding:3px 10px;font-size:11px;" title="عند التفعيل، تظهر أرقام وزبائن وأشكال تجريبية في لوحة التحكم فقط (في الذاكرة) دون لمس قاعدة البيانات الحقيقية. أُعيدي التبديل لإيقافه والرجوع للبيانات الحقيقية.">
+          <i class="fa-solid fa-eye"></i> معاينة لوحة التحكم
         </button>
       </span>
     </div>
@@ -1396,12 +1396,442 @@ const Site = (() => {
     return {handle,seed,reset};
   })();
 
+// ════════════════════════════════════════════════════════════════════
+  //   DASH_PREVIEW — وضع معاينة لوحة التحكم
+  //   يولّد قاعدة بيانات وهمية غنية في الذاكرة فقط (لا تُكتب إلى localStorage
+  //   ولا تُرسل إلى الخادم). تُستخدم لمعاينة كل أقسام لوحة التحكم بدون
+  //   لمس قاعدة البيانات الحقيقية. عند إيقاف الوضع، تُنسخ الذاكرة بالكامل.
+  // ════════════════════════════════════════════════════════════════════
+  const DASH_PREVIEW = (() => {
+    let cache = null;
+    function uid(p){return (p||'id')+'_'+Math.random().toString(36).slice(2,10);}
+    function buildMockDB(){
+      const now=Date.now();
+      const iso=(d)=>new Date(now+d*86400000).toISOString();
+
+      const subjects=[
+        {id:'s1',name:'الرياضيات',slug:'math',color:'#e7a93d',sort_order:1,created_at:iso(-90)},
+        {id:'s2',name:'الفيزياء',slug:'physics',color:'#5b9de3',sort_order:2,created_at:iso(-88)},
+        {id:'s3',name:'الكيمياء',slug:'chemistry',color:'#6fcf97',sort_order:3,created_at:iso(-86)},
+        {id:'s4',name:'الأحياء',slug:'biology',color:'#b39ddb',sort_order:4,created_at:iso(-84)},
+        {id:'s5',name:'اللغة العربية',slug:'arabic',color:'#ef6461',sort_order:5,created_at:iso(-82)},
+      ];
+
+      const tags=[
+        {id:'t1',name:'مراجعة',slug:'review',color:'#e7a93d',description:'محتوى مراجعة',sort_order:1,is_active:true,created_at:iso(-90)},
+        {id:'t2',name:'امتحان',slug:'exam',color:'#ef6461',description:'أسئلة امتحانات',sort_order:2,is_active:true,created_at:iso(-90)},
+        {id:'t3',name:'فصل أول',slug:'first-term',color:'#6fcf97',description:'',sort_order:3,is_active:true,created_at:iso(-90)},
+        {id:'t4',name:'فصل ثاني',slug:'second-term',color:'#b39ddb',description:'',sort_order:4,is_active:true,created_at:iso(-90)},
+        {id:'t5',name:'نهاية الفصل',slug:'final',color:'#5b9de3',description:'',sort_order:5,is_active:true,created_at:iso(-90)},
+        {id:'t6',name:'تمارين',slug:'exercises',color:'#f6d999',description:'',sort_order:6,is_active:true,created_at:iso(-90)},
+      ];
+
+      const plans=[
+        {id:'p1',name:'اشتراك شهري',price:5,currency:'BHD',duration_days:30,description:'وصول كامل لجميع المحتويات لمدة شهر',features:['دخول غير محدود','تحميل المذكرات','حضور البثوث'],is_featured:false,is_active:true,sort_order:1,created_at:iso(-90)},
+        {id:'p2',name:'اشتراك فصلي',price:12,currency:'BHD',duration_days:90,description:'أفضل قيمة — وصول كامل لمدة فصل دراسي',features:['دخول غير محدود','تحميل المذكرات','حضور البثوث','أسئلة وأجوبة مخصصة','خصم 20% على الباقات'],is_featured:true,is_active:true,sort_order:2,created_at:iso(-90)},
+        {id:'p3',name:'اشتراك سنوي',price:40,currency:'BHD',duration_days:365,description:'وصول كامل طوال السنة بأفضل سعر',features:['دخول غير محدود','تحميل المذكرات','حضور البثوث','أسئلة وأجوبة مخصصة','خصم 30% على الباقات','جلسات مراجعة فردية'],is_featured:false,is_active:true,sort_order:3,created_at:iso(-90)},
+      ];
+
+      const coupons=[
+        {id:'c1',code:'WELCOME10',discount_type:'percent',discount_value:10,max_uses:100,used_count:23,is_active:true,expires_at:iso(60),created_at:iso(-30)},
+        {id:'c2',code:'RAMADAN25',discount_type:'percent',discount_value:25,max_uses:50,used_count:47,is_active:true,expires_at:iso(15),created_at:iso(-20)},
+        {id:'c3',code:'OLD50',discount_type:'fixed',discount_value:5,max_uses:20,used_count:20,is_active:false,expires_at:iso(-5),created_at:iso(-60)},
+      ];
+
+      const materials=[
+        {id:'m1',title:'مذكرة الرياضيات — الفصل الأول',type:'مذكرة',subject_id:'s1',tags:['t1','t3'],description:'مذكرة شاملة للفصل الأول تشمل الأمثلة والتمارين',preview_content:'في هذا الفصل ندرس الأساسيات...',search_tags:'فصل أول، جبر، معادلات',file_type:'drive',file_url:'https://drive.google.com/file/d/preview',cover_image_url:'',extra_attachments:[],is_locked:true,access:'subscription',individual_price:0,currency:'BHD',is_published:true,girls_only:false,view_count:342,seller_id:null,created_at:iso(-30),slug:'math-term1-m1'},
+        {id:'m2',title:'ملخص الفيزياء — الحركة',type:'ملخص',subject_id:'s2',tags:['t1','t6'],description:'ملخص سريع لوحدة الحركة',preview_content:'الحركة هي تغيّر موقع الجسم...',search_tags:'حركة، سرعة، تسارع',file_type:'pdf',file_url:'https://example.com/physics-motion.pdf',cover_image_url:'',extra_attachments:[],is_locked:false,access:'subscription',individual_price:0,currency:'BHD',is_published:true,girls_only:false,view_count:187,seller_id:null,created_at:iso(-25),slug:'physics-motion-m2'},
+        {id:'m3',title:'درس الكيمياء — الروابط الأيونية',type:'درس',subject_id:'s3',tags:['t3','t6'],description:'شرح مفصل للروابط الأيونية مع رسومات توضيحية',preview_content:'الرابطة الأيونية تنشأ بين...',search_tags:'روابط، أيونات',file_type:'youtube',file_url:'https://youtube.com/watch?v=preview',cover_image_url:'',extra_attachments:[],is_locked:true,access:'individual',individual_price:2,currency:'BHD',is_published:true,girls_only:false,view_count:95,seller_id:'slr1',seller_status:'approved',created_at:iso(-20),slug:'chem-ionic-m3'},
+        {id:'m4',title:'مذكرة الأحياء — الخلية',type:'مذكرة',subject_id:'s4',tags:['t1','t3'],description:'مذكرة الخلية وتركيبها ووظائف عضياتها',preview_content:'الخلية هي الوحدة الأساسية...',search_tags:'خلية، نواة',file_type:'pdf',file_url:'https://example.com/bio-cell.pdf',cover_image_url:'',extra_attachments:[],is_locked:true,access:'both',individual_price:1.5,currency:'BHD',is_published:true,girls_only:true,view_count:156,seller_id:'slr2',seller_status:'approved',created_at:iso(-15),slug:'bio-cell-m4'},
+        {id:'m5',title:'بث مراجعة الرياضيات النهائي',type:'بث',subject_id:'s1',tags:['t2','t5'],description:'بث مباشر لمراجعة نهاية الفصل',preview_content:'مراجعة شاملة لكل الفصل',search_tags:'مراجعة، نهائي',file_type:'youtube',file_url:'https://youtube.com/live/preview',cover_image_url:'',extra_attachments:[],is_locked:true,access:'subscription',individual_price:0,currency:'BHD',is_published:true,girls_only:false,view_count:78,seller_id:null,created_at:iso(-10),slug:'math-review-m5'},
+        {id:'m6',title:'ملخص اللغة العربية — النحو',type:'ملخص',subject_id:'s5',tags:['t1','t4'],description:'ملخص قواعد النحو للصف الثانوي',preview_content:'النحو هو علم يعني به...',search_tags:'نحو، قواعد',file_type:'drive',file_url:'https://drive.google.com/preview',cover_image_url:'',extra_attachments:[],is_locked:false,access:'subscription',individual_price:0,currency:'BHD',is_published:true,girls_only:false,view_count:412,seller_id:null,created_at:iso(-8),slug:'arabic-nahw-m6'},
+        {id:'m7',title:'مذكرة الفيزياء — الكهرباء (مسودة)',type:'مذكرة',subject_id:'s2',tags:['t4','t6'],description:'مذكرة قيد الإعداد',preview_content:'الكهرباء هي...',search_tags:'كهرباء، تيار',file_type:'drive',file_url:'https://drive.google.com/draft',cover_image_url:'',extra_attachments:[],is_locked:true,access:'subscription',individual_price:0,currency:'BHD',is_published:false,girls_only:false,view_count:12,seller_id:null,created_at:iso(-5),slug:'physics-elect-m7'},
+        {id:'m8',title:'مذكرة الكيمياء — التفاعلات (بانتظار الموافقة)',type:'مذكرة',subject_id:'s3',tags:['t1','t3'],description:'مذكرة بائعة جديدة بانتظار المراجعة',preview_content:'التفاعلات الكيميائية...',search_tags:'تفاعلات',file_type:'pdf',file_url:'https://example.com/chem-reactions.pdf',cover_image_url:'',extra_attachments:[],is_locked:true,access:'individual',individual_price:1,currency:'BHD',is_published:true,girls_only:false,view_count:0,seller_id:'slr3',seller_status:'pending',created_at:iso(-2),slug:'chem-reactions-m8'},
+      ];
+
+      const users=[
+        {id:'u1',name:'سارة أحمد',email:'sara@example.com',password:'',gender:'female',grade:'12',role:'member',status:'active',wishlist:[],created_at:iso(-45)},
+        {id:'u2',name:'محمد علي',email:'mohammed@example.com',password:'',gender:'male',grade:'11',role:'member',status:'active',wishlist:[],created_at:iso(-42)},
+        {id:'u3',name:'فاطمة حسن',email:'fatima@example.com',password:'',gender:'female',grade:'10',role:'member',status:'active',wishlist:[],created_at:iso(-38)},
+        {id:'u4',name:'نورة خالد',email:'noura@example.com',password:'',gender:'female',grade:'12',role:'member',status:'active',wishlist:[],created_at:iso(-35)},
+        {id:'u5',name:'عبدالله يوسف',email:'abdullah@example.com',password:'',gender:'male',grade:'uni',role:'member',status:'blocked',wishlist:[],created_at:iso(-30)},
+        {id:'u6',name:'مريم سعيد',email:'mariam@example.com',password:'',gender:'female',grade:'11',role:'member',status:'active',wishlist:[],created_at:iso(-25)},
+        {id:'u7',name:'أحمد محمود',email:'ahmed@example.com',password:'',gender:'male',grade:'12',role:'member',status:'active',wishlist:[],created_at:iso(-20)},
+        {id:'u8',name:'هند ناصر',email:'hind@example.com',password:'',gender:'female',grade:'12',role:'member',status:'active',wishlist:[],created_at:iso(-18)},
+        {id:'u9',name:'خالد إبراهيم',email:'khaled@example.com',password:'',gender:'male',grade:'10',role:'member',status:'active',wishlist:[],created_at:iso(-15)},
+        {id:'u10',name:'عائشة عبدالعزيز',email:'aisha@example.com',password:'',gender:'female',grade:'uni',role:'member',status:'active',wishlist:[],created_at:iso(-10)},
+        {id:'u11',name:'ريم فهد',email:'reem@example.com',password:'',gender:'female',grade:'11',role:'member',status:'active',wishlist:[],created_at:iso(-8)},
+        {id:'u12',name:'يوسف سليمان',email:'yousef@example.com',password:'',gender:'male',grade:'12',role:'member',status:'active',wishlist:[],created_at:iso(-5)},
+      ];
+
+      const sellers=[
+        {id:'slr1',user_id:'u1',user_email:'sara@example.com',user_name:'سارة أحمد',user_gender:'female',display_name:'معلمة سارة للرياضيات',bio:'معلمة رياضيات بخبرة 10 سنوات في التعليم الثانوي',subjects:'الرياضيات، الفيزياء',profile_image:'',sample_url:'',credential_tags:['معلمة موثقة','خبرة 10 سنوات'],status:'approved',approved_at:iso(-40),commission_rate:0.20,total_earnings:42.5,pending_payout:8.25,paid_out:34.25,verified_badge:true,created_at:iso(-50),applied_at:iso(-50)},
+        {id:'slr2',user_id:'u3',user_email:'fatima@example.com',user_name:'فاطمة حسن',user_gender:'female',display_name:'أ. فاطمة للأحياء',bio:'أخصائية أحياء بماجستير',subjects:'الأحياء، الكيمياء',profile_image:'',sample_url:'',credential_tags:['ماجستير أحياء'],status:'approved',approved_at:iso(-30),commission_rate:0.15,total_earnings:18.0,pending_payout:3.0,paid_out:15.0,verified_badge:false,created_at:iso(-35),applied_at:iso(-35)},
+        {id:'slr3',user_id:'u6',user_email:'mariam@example.com',user_name:'مريم سعيد',user_gender:'female',display_name:'مريم للكيمياء',bio:'خريجة كيمياء حديثة',subjects:'الكيمياء',profile_image:'',sample_url:'',credential_tags:[],status:'pending',commission_rate:null,total_earnings:0,pending_payout:0,paid_out:0,verified_badge:false,created_at:iso(-3),applied_at:iso(-3)},
+        {id:'slr4',user_id:'u8',user_email:'hind@example.com',user_name:'هند ناصر',user_gender:'female',display_name:'هند للعلوم',bio:'سابقاً بائعة معتمدة',subjects:'الفيزياء',profile_image:'',sample_url:'',credential_tags:[],status:'blocked',commission_rate:0.20,total_earnings:5.0,pending_payout:0,paid_out:5.0,verified_badge:false,created_at:iso(-60),applied_at:iso(-60)},
+      ];
+
+      const subscriptions=[
+        {id:'sub1',user_id:'u1',plan_id:'p2',started_at:iso(-30),expires_at:iso(60),status:'active',order_id:'o1'},
+        {id:'sub2',user_id:'u2',plan_id:'p1',started_at:iso(-25),expires_at:iso(5),status:'active',order_id:'o2'},
+        {id:'sub3',user_id:'u3',plan_id:'p3',started_at:iso(-100),expires_at:iso(265),status:'active',order_id:'o3'},
+        {id:'sub4',user_id:'u4',plan_id:'p2',started_at:iso(-85),expires_at:iso(5),status:'active',order_id:'o4'},
+        {id:'sub5',user_id:'u6',plan_id:'p1',started_at:iso(-40),expires_at:iso(-10),status:'expired',order_id:'o5'},
+        {id:'sub6',user_id:'u7',plan_id:'p2',started_at:iso(-20),expires_at:iso(70),status:'active',order_id:'o6'},
+        {id:'sub7',user_id:'u8',plan_id:'p3',started_at:iso(-200),expires_at:iso(165),status:'active',order_id:'o7'},
+      ];
+
+      const orders=[
+        {id:'o1',user_id:'u1',user_name:'سارة أحمد',user_email:'sara@example.com',user_gender:'female',type:'subscription',plan_id:'p2',amount:12,currency:'BHD',original_amount:12,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'BENEFIT-12345',status:'approved',created_at:iso(-30)},
+        {id:'o2',user_id:'u2',user_name:'محمد علي',user_email:'mohammed@example.com',user_gender:'male',type:'subscription',plan_id:'p1',amount:4.5,currency:'BHD',original_amount:5,discount_amount:0.5,coupon_id:'c1',payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-25)},
+        {id:'o3',user_id:'u3',user_name:'فاطمة حسن',user_email:'fatima@example.com',user_gender:'female',type:'subscription',plan_id:'p3',amount:40,currency:'BHD',original_amount:40,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-100)},
+        {id:'o4',user_id:'u4',user_name:'نورة خالد',user_email:'noura@example.com',user_gender:'female',type:'subscription',plan_id:'p2',amount:12,currency:'BHD',original_amount:12,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-85)},
+        {id:'o5',user_id:'u6',user_name:'مريم سعيد',user_email:'mariam@example.com',user_gender:'female',type:'subscription',plan_id:'p1',amount:5,currency:'BHD',original_amount:5,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-40)},
+        {id:'o6',user_id:'u7',user_name:'أحمد محمود',user_email:'ahmed@example.com',user_gender:'male',type:'subscription',plan_id:'p2',amount:12,currency:'BHD',original_amount:12,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-20)},
+        {id:'o7',user_id:'u8',user_name:'هند ناصر',user_email:'hind@example.com',user_gender:'female',type:'subscription',plan_id:'p3',amount:40,currency:'BHD',original_amount:40,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'approved',created_at:iso(-200)},
+        {id:'o8',user_id:'u9',user_name:'خالد إبراهيم',user_email:'khaled@example.com',user_gender:'male',type:'purchase',material_id:'m3',seller_id:'slr1',commission_amount:0.4,seller_payout:1.6,amount:2,currency:'BHD',original_amount:2,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'pending',created_at:iso(-2)},
+        {id:'o9',user_id:'u10',user_name:'عائشة عبدالعزيز',user_email:'aisha@example.com',user_gender:'female',type:'purchase',material_id:'m4',seller_id:'slr2',commission_amount:0.225,seller_payout:1.275,amount:1.5,currency:'BHD',original_amount:1.5,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'pending',created_at:iso(-1)},
+        {id:'o10',user_id:'u11',user_name:'ريم فهد',user_email:'reem@example.com',user_gender:'female',type:'subscription',plan_id:'p1',amount:5,currency:'BHD',original_amount:5,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'pending',created_at:iso(0)},
+        {id:'o11',user_id:'u12',user_name:'يوسف سليمان',user_email:'yousef@example.com',user_gender:'male',type:'subscription',plan_id:'p1',amount:5,currency:'BHD',original_amount:5,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'rejected',created_at:iso(-7)},
+        {id:'o12',user_id:'u5',user_name:'عبدالله يوسف',user_email:'abdullah@example.com',user_gender:'male',type:'purchase',material_id:'m3',seller_id:'slr1',commission_amount:0.4,seller_payout:1.6,amount:2,currency:'BHD',original_amount:2,discount_amount:0,payment_method:'benefit',receipt_image_data:'',receipt_text:'',status:'cancelled',created_at:iso(-12)},
+      ];
+
+      const meets=[
+        {id:'mt1',title:'بث مراجعة الرياضيات النهائي',platform:'Google Meet',url:'https://meet.google.com/abc-defg-hij',scheduled_at:iso(2),capacity:50,description:'مراجعة شاملة للفصل الأول',girls_only:true,is_published:true,created_at:iso(-5)},
+        {id:'mt2',title:'بث فيزياء — الكهرباء والمغناطيسية',platform:'Zoom',url:'https://zoom.us/j/1234567890',scheduled_at:iso(5),capacity:100,description:'شرح مفصل لوحدة الكهرباء',girls_only:false,is_published:true,created_at:iso(-3)},
+        {id:'mt3',title:'بث كيمياء — التفاعلات (بانتظار الموافقة)',platform:'YouTube Live',url:'https://youtube.com/live/abc',scheduled_at:iso(7),capacity:200,description:'مراجعة تفاعلية لتفاعلات الكيمياء',girls_only:true,is_published:true,seller_id:'slr3',seller_status:'pending',created_at:iso(-1)},
+      ];
+
+      const reviews=[
+        {id:'r1',customer_name:'طالبة ثانوية',rating:5,content:'محتوى رائع وسهل الفهم، ساعدني كثيراً في الاختبارات!',is_visible:true,created_at:iso(-15)},
+        {id:'r2',customer_name:'والدة طالبة',rating:5,content:'ابنتي تحسّنت كثيراً في الرياضيات بعد الاشتراك. شكراً لكم!',is_visible:true,created_at:iso(-12)},
+        {id:'r3',customer_name:'طالب جامعي',rating:4,content:'الملخصات ممتازة لكن بعض الدروس تحتاج تفصيل أكثر.',is_visible:true,created_at:iso(-8)},
+        {id:'r4',customer_name:'خريجة',rating:5,content:'منصة احترافية بأسعار مناسبة. أنصح بها بشدة.',is_visible:true,created_at:iso(-5)},
+        {id:'r5',customer_name:'طالبة صف ثامن',rating:4,content:'الفيديوهات واضحة والمذكرة مرتبة.',is_visible:false,created_at:iso(-2)},
+      ];
+
+      const verified_reviews=[
+        {id:'vr1',user_id:'u1',user_name:'سارة أحمد',material_id:'m1',seller_id:null,rating:5,content:'مذكرة ممتازة، شرح وافٍ وتمارين متنوعة.',status:'visible',created_at:iso(-10)},
+        {id:'vr2',user_id:'u3',user_name:'فاطمة حسن',material_id:'m4',seller_id:'slr2',rating:4,content:'مفيدة جداً لكن تحتاج بعض التحديث.',status:'visible',created_at:iso(-7)},
+        {id:'vr3',user_id:'u2',user_name:'محمد علي',material_id:'m2',seller_id:null,rating:5,content:'ملخص رائع ساعدني في المراجعة.',status:'hidden',created_at:iso(-5)},
+        {id:'vr4',user_id:'u7',user_name:'أحمد محمود',material_id:'m3',seller_id:'slr1',rating:2,content:'الجودة متوسطة والسعر مرتفع قليلاً.',status:'flagged',created_at:iso(-2)},
+      ];
+
+      const qa=[
+        {id:'qa1',material_id:'m1',user_id:'u2',user_name:'محمد علي',question:'هل تشمل المذكرة حلول التمارين؟',answer:'نعم، تشمل حلول مفصلة لجميع التمارين.',status:'answered',created_at:iso(-8)},
+        {id:'qa2',material_id:'m3',user_id:'u4',user_name:'نورة خالد',question:'متى يتم رفع الدرس القادم؟',answer:'',status:'pending',created_at:iso(-3)},
+        {id:'qa3',material_id:'m4',user_id:'u7',user_name:'أحمد محمود',question:'هل المحتوى مناسب للصف الحادي عشر؟',answer:'',status:'pending',created_at:iso(-1)},
+      ];
+
+      const categories=[
+        {id:'cat1',name:'العلوم',parent_id:'',type:'general',created_at:iso(-90)},
+        {id:'cat2',name:'الرياضيات',parent_id:'cat1',type:'subject',created_at:iso(-88)},
+        {id:'cat3',name:'الفصل الأول',parent_id:'cat2',type:'unit',created_at:iso(-86)},
+      ];
+
+      const activity_log=[
+        {action:'admin_login',email:'admin@platform.site',ts:iso(0)},
+        {action:'order_created',type:'اشتراك',amount:5,ts:iso(0)},
+        {action:'user_registered',email:'reem@example.com',ts:iso(-1)},
+        {action:'item_created',store:'materials',ts:iso(-2)},
+        {action:'seller_applied',ts:iso(-3)},
+        {action:'order_approved',ts:iso(-5)},
+        {action:'item_updated',store:'subjects',ts:iso(-7)},
+        {action:'settings_updated',ts:iso(-10)},
+        {action:'payout_paid',ts:iso(-15)},
+        {action:'item_deleted',store:'tags',ts:iso(-18)},
+        {action:'user_login',ts:iso(-20)},
+        {action:'subscription_extended',days:30,ts:iso(-22)},
+      ];
+
+      const settings={
+        site_name:'منصتي التعليمية',site_logo:'',site_logo_size:40,
+        hero_title:'منصة تعليمية متكاملة',
+        hero_subtitle:'مذكرات وملخصات ودروس وبثوث مباشرة بأسعار رمزية',
+        teacher_name:'الأستاذة',site_tagline:'تعلم · تطبق · تتفوق',
+        site_description:'منصة تعليمية لمشاركة المذكرات والملخصات والدروس.',
+        theme_color:'#e7a93d',theme_mode:'dark',
+        payment_phone:'+97330000000',payment_phone_owner:'منصتي التعليمية',
+        whatsapp_number:'+97330000000',instagram_url:'https://instagram.com/',
+        tiktok_url:'https://tiktok.com/',youtube_url:'https://youtube.com/',snapchat_url:'',
+        currency:'BHD',payment_method_benefit:true,payment_method_vodafone:false,
+        allow_individual_purchase:true,allow_subscription:true,marketplace_enabled:true,
+        default_commission_rate:0.20,min_payout_amount:5,max_seller_discount_percent:30,
+        referral_enabled:true,referral_discount_percent:10,referral_reward_percent:5,
+        announcement_active:true,announcement_text:'🎁 خصم 25% على الاشتراك الفصلي — لفترة محدودة!',
+        announcement_color:'#e7a93d',footer_note:'© 2024 جميع الحقوق محفوظة',
+        admin_email:'admin@platform.site',
+        show_stats_section:true,show_subjects_section:true,show_latest_section:true,
+        show_plans_section:true,show_sellers_section:true,show_reviews_section:true,
+        show_faq_section:true,show_individual_section:true,show_bundles_section:true,
+        custom_css:'',
+      };
+
+      return {
+        settings,subjects,tags,plans,materials,users,sellers,subscriptions,orders,
+        meets,reviews,verified_reviews,qa,categories,coupons,activity_log,
+        purchases:[],payouts:[],payout_requests:[],notifications:[],bundles:[],
+        admins:[{email:'admin@platform.site',password:'admin123'}],
+      };
+    }
+
+    function getDB(){if(!cache) cache=buildMockDB(); return cache;}
+
+    function handle(action,payload){
+      const db=getDB();
+      switch(`admin:${action}`){
+        case 'admin:me': return {admin:{email:'preview@dashboard.local'}};
+        case 'admin:logout': return {ok:true};
+        case 'admin:system-status':
+          return {storage_mode:'preview',supabase_configured:false,is_supabase:false,version:'preview-mode'};
+
+        case 'admin:stats':{
+          const approved=(db.orders||[]).filter(o=>o.status==='approved');
+          const pending=(db.orders||[]).filter(o=>o.status==='pending');
+          const activeSubs=(db.subscriptions||[]).filter(s=>s.status==='active'&&new Date(s.expires_at)>new Date());
+          const approvedSellers=(db.sellers||[]).filter(s=>s.status==='approved');
+          const pendingSellers=(db.sellers||[]).filter(s=>s.status==='pending');
+          const soon=activeSubs.filter(s=>(new Date(s.expires_at)-new Date())/86400000<=7).length;
+          const revenue_last7=[];
+          for(let i=6;i>=0;i--){
+            const d=new Date(Date.now()-i*86400000);
+            const count=2+Math.floor(Math.random()*5);
+            const revenue=count*(3+Math.random()*5);
+            revenue_last7.push({label:d.toLocaleDateString('ar-BH',{weekday:'short'}),revenue:Math.round(revenue*1000)/1000,count});
+          }
+          return {
+            stats:{
+              users:(db.users||[]).length,
+              users_female:(db.users||[]).filter(u=>u.gender==='female').length,
+              users_male:(db.users||[]).filter(u=>u.gender==='male').length,
+              users_blocked:(db.users||[]).filter(u=>u.status==='blocked').length,
+              materials:(db.materials||[]).length,
+              materials_published:(db.materials||[]).filter(m=>m.is_published!==false).length,
+              pending_seller_materials:(db.materials||[]).filter(m=>m.seller_status==='pending').length,
+              subjects:(db.subjects||[]).length,
+              tags:(db.tags||[]).length,
+              plans:(db.plans||[]).length,
+              orders_pending:pending.length,
+              orders_total:(db.orders||[]).length,
+              orders_approved:approved.length,
+              reviews:(db.reviews||[]).length,
+              reviews_visible:(db.reviews||[]).filter(r=>r.is_visible).length,
+              subscriptions_active:activeSubs.length,
+              subscriptions_expiring:soon,
+              purchases:(db.purchases||[]).length,
+              meets_upcoming:(db.meets||[]).filter(m=>!m.scheduled_at||new Date(m.scheduled_at)>new Date()).length,
+              revenue:approved.reduce((a,o)=>a+Number(o.amount||0),0),
+              revenue_pending:pending.reduce((a,o)=>a+Number(o.amount||0),0),
+              total_commission:approved.reduce((a,o)=>a+Number(o.commission_amount||0),0),
+              sellers_total:(db.sellers||[]).length,
+              sellers_approved:approvedSellers.length,
+              sellers_pending:pendingSellers.length,
+              coupons:(db.coupons||[]).length,
+              coupons_active:(db.coupons||[]).filter(c=>c.is_active).length,
+              pending_payouts:(db.sellers||[]).reduce((a,s)=>a+Number(s.pending_payout||0),0),
+              qa_pending:(db.qa||[]).filter(q=>q.status==='pending').length,
+            },
+            revenue_last7,
+            top_materials:[...(db.materials||[])].sort((a,b)=>(b.view_count||0)-(a.view_count||0)).slice(0,5).map(m=>({id:m.id,title:m.title,views:m.view_count||0,type:m.type,seller_id:m.seller_id})),
+            recent_orders:(db.orders||[]).slice(-8).reverse().map(o=>{const s={...o};delete s.receipt_image_data;return s;}),
+            recent_activity:(db.activity_log||[]).slice(-12).reverse(),
+          };
+        }
+
+        case 'admin:list':{
+          const w=payload.what;
+          if(w==='settings') return {items:db.settings||{}};
+          let items=(db[w]||[]).slice();
+          if(w==='orders') items=items.map(o=>{const s={...o};delete s.receipt_image_data;return s;});
+          if(w==='users') items=items.map(u=>{const s={...u};delete s.password;return s;});
+          return {items};
+        }
+
+        case 'admin:save':{
+          const w=payload.what;
+          if(w==='settings'){db.settings={...(db.settings||{}),...(payload.settings||payload.item)};return {settings:db.settings};}
+          db[w]=db[w]||[];
+          const item=payload.item;
+          if(item.id){const idx=db[w].findIndex(x=>x.id===item.id);if(idx>=0) db[w][idx]={...db[w][idx],...item};else db[w].push(item);}
+          else{
+            const pfx={materials:'m',subjects:'s',plans:'p',reviews:'r',meets:'mt',tags:'t',coupons:'c'}[w]||'i';
+            item.id=uid(pfx);
+            if(!item.created_at) item.created_at=new Date().toISOString();
+            if(w==='materials'&&!item.slug) item.slug=(item.title||'content').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);
+            if(w==='subjects'&&!item.slug) item.slug=(item.name||'subject').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);
+            if(w==='tags'&&!item.slug) item.slug=(item.name||'tag').trim().replace(/\s+/g,'-').toLowerCase()+'-'+item.id.slice(-4);
+            if(w==='materials'){item.view_count=0;if(item.is_published===undefined)item.is_published=true;}
+            if(w==='coupons'){item.used_count=0;if(item.is_active===undefined)item.is_active=true;}
+            db[w].push(item);
+          }
+          return {item};
+        }
+
+        case 'admin:delete':
+          db[payload.what]=(db[payload.what]||[]).filter(x=>x.id!==payload.id);
+          return {ok:true};
+
+        case 'admin:reorder':
+          for(let i=0;i<(payload.ids||[]).length;i++){
+            const it=(db[payload.what]||[]).find(x=>x.id===payload.ids[i]);
+            if(it) it.sort_order=i+1;
+          }
+          return {ok:true};
+
+        case 'admin:get-order':{
+          const o=(db.orders||[]).find(x=>x.id===payload.id);
+          if(!o) throw new Error('الطلب غير موجود.');
+          return {order:o};
+        }
+
+        case 'admin:order-decide':{
+          const o=(db.orders||[]).find(x=>x.id===payload.id);
+          if(!o) throw new Error('الطلب غير موجود.');
+          if(o.status!=='pending') throw new Error('تمت المراجعة.');
+          o.status=payload.decision;o.decided_at=new Date().toISOString();o.admin_notes=(payload.notes||'').slice(0,500);
+          if(payload.decision==='approved'){
+            if(o.type==='subscription'){
+              const plan=(db.plans||[]).find(p=>p.id===o.plan_id);
+              const expires=new Date(Date.now()+(plan?.duration_days||30)*86400000).toISOString();
+              const idx=(db.subscriptions||[]).findIndex(s=>s.user_id===o.user_id);
+              const sub={user_id:o.user_id,plan_id:o.plan_id,started_at:new Date().toISOString(),expires_at:expires,status:'active',order_id:o.id};
+              if(idx>=0) db.subscriptions[idx]=sub;else{sub.id=uid('sub');db.subscriptions.push(sub);}
+            }
+            if(o.seller_id&&o.seller_payout>0){
+              const s=(db.sellers||[]).find(x=>x.id===o.seller_id);
+              if(s){s.pending_payout=(s.pending_payout||0)+o.seller_payout;s.total_earnings=(s.total_earnings||0)+o.seller_payout;}
+            }
+          }
+          return {order:{...o,receipt_image_data:undefined}};
+        }
+
+        case 'admin:toggle-user-status':{
+          const u=(db.users||[]).find(x=>x.id===payload.id);
+          if(!u) throw new Error('غير موجود.');
+          u.status=u.status==='blocked'?'active':'blocked';
+          const safe={...u};delete safe.password;
+          return {user:safe};
+        }
+
+        case 'admin:extend-subscription':{
+          const days=parseInt(payload.days,10);
+          if(!days) throw new Error('أيام غير صحيحة.');
+          let sub=(db.subscriptions||[]).find(s=>s.user_id===payload.user_id);
+          const baseFrom=sub&&sub.status==='active'&&new Date(sub.expires_at)>new Date()?new Date(sub.expires_at):new Date();
+          const expires=new Date(baseFrom.getTime()+days*86400000).toISOString();
+          const newSub={user_id:payload.user_id,plan_id:payload.plan_id,started_at:sub?.started_at||new Date().toISOString(),expires_at:expires,status:'active',manual:true};
+          if(sub?.id) newSub.id=sub.id;else{newSub.id=uid('sub');db.subscriptions=db.subscriptions||[];db.subscriptions.push(newSub);}
+          db.subscriptions=db.subscriptions.map(s=>s.id===newSub.id?newSub:s);
+          return {subscription:newSub};
+        }
+
+        case 'admin:save-settings':
+          db.settings={...(db.settings||{}),...payload.settings};
+          return {settings:db.settings};
+
+        case 'admin:decide-seller':{
+          const s=(db.sellers||[]).find(x=>x.id===payload.id);
+          if(!s) throw new Error('البائع غير موجود.');
+          s.status=payload.decision;
+          if(payload.decision==='approved'){s.approved_at=new Date().toISOString();if(s.commission_rate==null)s.commission_rate=db.settings?.default_commission_rate??0.20;if(payload.commission_rate!=null)s.commission_rate=payload.commission_rate;}
+          else if(payload.decision==='rejected') s.rejection_reason=payload.reason||'';
+          return {seller:s};
+        }
+
+        case 'admin:update-seller-commission':{
+          const s=(db.sellers||[]).find(x=>x.id===payload.id);
+          if(!s) throw new Error('غير موجود.');
+          s.commission_rate=parseFloat(payload.commission_rate);
+          return {seller:s};
+        }
+
+        case 'admin:decide-seller-material':{
+          const m=(db.materials||[]).find(x=>x.id===payload.id);
+          if(!m) throw new Error('غير موجود.');
+          m.seller_status=payload.decision;
+          if(payload.decision==='rejected') m.rejection_reason=payload.reason||'';
+          return {material:m};
+        }
+
+        case 'admin:mark-payout-paid':{
+          const s=(db.sellers||[]).find(x=>x.id===payload.id);
+          if(!s) throw new Error('غير موجود.');
+          const amount=Number(payload.amount)||s.pending_payout;
+          s.paid_out=(s.paid_out||0)+amount;
+          s.pending_payout=Math.max(0,(s.pending_payout||0)-amount);
+          s.last_payout_at=new Date().toISOString();
+          return {seller:s};
+        }
+
+        case 'admin:decide-seller-meet':{
+          const m=(db.meets||[]).find(x=>x.id===payload.id);
+          if(!m) throw new Error('غير موجود.');
+          m.seller_status=payload.decision;
+          return {meet:m};
+        }
+
+        case 'admin:list-verified-reviews':{
+          let list=(db.verified_reviews||[]).slice();
+          if(payload.status) list=list.filter(r=>r.status===payload.status);
+          return {reviews:list};
+        }
+
+        case 'admin:moderate-review':{
+          const r=(db.verified_reviews||[]).find(x=>x.id===payload.id);
+          if(!r) throw new Error('غير موجود.');
+          r.status=payload.status;
+          return {review:r};
+        }
+
+        case 'admin:list-qa':{
+          let list=(db.qa||[]).slice();
+          if(payload.status) list=list.filter(q=>q.status===payload.status);
+          return {qa:list};
+        }
+
+        case 'admin:answer-qa':{
+          const q=(db.qa||[]).find(x=>x.id===payload.id);
+          if(!q) throw new Error('غير موجود.');
+          q.answer=(payload.answer||'').trim();
+          q.status=q.answer?'answered':'pending';
+          return {qa:q};
+        }
+
+        case 'admin:save-category':{
+          const item=payload.item;
+          if(!item.id){item.id=uid('cat');item.created_at=new Date().toISOString();db.categories=db.categories||[];db.categories.push(item);}
+          else{const idx=(db.categories||[]).findIndex(c=>c.id===item.id);if(idx>=0) db.categories[idx]={...db.categories[idx],...item};else db.categories.push(item);}
+          return {item};
+        }
+
+        case 'admin:export-data':
+          return {data:{...db,_exported_at:new Date().toISOString(),_version:4,_preview:true}};
+
+        case 'admin:import-data':
+          // في وضع المعاينة: نتجاهل الاستيراد فعلياً حتى لا نلوّث البيانات الوهمية
+          return {ok:true};
+
+        case 'admin:reset-all':
+          cache=buildMockDB();
+          return {ok:true};
+
+        default:
+          throw new Error('غير معروف في المعاينة: admin:'+action);
+      }
+    }
+
+    return {handle,reset:()=>{cache=null;},_getDB:getDB};
+  })();
+
   let _demoMode=null;
   async function call(fn,payload={}){
     const token=(fn==='admin'?getAdminToken():getToken());
     const body={...payload};
     if(token&&!body.token) body.token=token;
     if(_demoMode===true) return DEMO_IMPL.handle(fn,body.action||'',body);
+    // وضع معاينة لوحة التحكم: يعترض استدعاءات admin فقط ويُعيد بيانات وهمية
+    // من الذاكرة (DASH_PREVIEW) دون لمس قاعدة البيانات الحقيقية أو إرسال طلب للخادم.
+    if(fn==='admin' && isDashPreviewMode()) return DASH_PREVIEW.handle(body.action||'',body);
     let res,json;
     try{res=await fetch(`${API_BASE}/${fn}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});}
     catch(_){_demoMode=true;return DEMO_IMPL.handle(fn,body.action||'',body);}
@@ -1420,6 +1850,15 @@ const Site = (() => {
   const PREVIEW_MODE_KEY='platform_preview_mode';
   function isPreviewMode(){return localStorage.getItem(PREVIEW_MODE_KEY)==='1';}
   function setPreviewMode(on){if(on) localStorage.setItem(PREVIEW_MODE_KEY,'1'); else localStorage.removeItem(PREVIEW_MODE_KEY);}
+
+  // ── وضع معاينة لوحة التحكم: يعمل بالكامل في الذاكرة، لا يلمس قاعدة البيانات
+  // الحقيقية ولا يرسل أي طلب للخادم. القيمة تُخزَّن في localStorage فقط.
+  const DASH_PREVIEW_KEY='platform_dash_preview_mode';
+  function isDashPreviewMode(){return localStorage.getItem(DASH_PREVIEW_KEY)==='1';}
+  function setDashPreviewMode(on){
+    if(on){ localStorage.setItem(DASH_PREVIEW_KEY,'1'); }
+    else { localStorage.removeItem(DASH_PREVIEW_KEY); try{ if(DASH_PREVIEW) DASH_PREVIEW.reset(); }catch(_){} }
+  }
 
   function getToken(){return localStorage.getItem(TOKEN_KEY)||'';}
   function setToken(t){localStorage.setItem(TOKEN_KEY,t);}
@@ -1552,6 +1991,7 @@ const Site = (() => {
     trackRecentView,getRecentViews,initHeader,
     isDemoMode,DEMO:DEMO_IMPL,TYPE_COLOR_VAR,FILE_TYPE_ICONS,FILE_TYPE_LABELS,
     isPreviewMode,setPreviewMode,
+    isDashPreviewMode,setDashPreviewMode,DASH_PREVIEW,
   };
 })();
 window.Site=Site;
