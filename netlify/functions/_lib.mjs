@@ -112,6 +112,16 @@ export function parseToken(token) {
   } catch (_) { return null; }
 }
 
+// ── بيانات دخول الإدارة: إجبارية عبر متغيرات البيئة، بدون أي قيمة احتياطية ──
+export function requireAdminCredentials() {
+  const email = process.env.ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD;
+  if (!email || !password) {
+    throw new Error('يجب ضبط متغيرَي البيئة ADMIN_EMAIL و ADMIN_PASSWORD على Netlify (Site configuration → Environment variables) — لا توجد قيمة افتراضية بعد الآن.');
+  }
+  return { email: email.toLowerCase().trim(), password };
+}
+
 // ── Migration آمن للإعدادات: يضيف أي حقول جديدة بقيمها الافتراضية ──
 export async function ensureSeed() {
   const existing = await Store.getJSON('meta', 'seeded');
@@ -128,8 +138,7 @@ export async function ensureSeed() {
   }
   const settings = defaultSettings();
   await Store.setJSON('settings', 'main', settings);
-  const adminEmail = (process.env.ADMIN_EMAIL || 'admin@platform.site').toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  const { email: adminEmail, password: adminPassword } = requireAdminCredentials();
   await Store.setJSON('admins', adminEmail, { email: adminEmail, password_hash: hashPassword(adminPassword), created_at: new Date().toISOString() });
   await Store.setJSON('admins_by_email', adminEmail, { id: adminEmail });
   await Store.setJSON('meta', 'seeded', { at: new Date().toISOString() });
