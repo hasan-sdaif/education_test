@@ -151,15 +151,33 @@ export async function ensureSeed() {
       if (cur[k] === undefined) { cur[k] = defaults[k]; changed = true; }
     }
     if (changed) await Store.setJSON('settings', 'main', cur);
+    await syncAdminCredentials();
     return;
   }
   const settings = defaultSettings();
   await Store.setJSON('settings', 'main', settings);
-  const { email: adminEmail, password: adminPassword } = requireAdminCredentials();
-  await Store.setJSON('admins', adminEmail, { email: adminEmail, password_hash: hashPassword(adminPassword), created_at: new Date().toISOString() });
-  await Store.setJSON('admins_by_email', adminEmail, { id: adminEmail });
+  await syncAdminCredentials();
   await Store.setJSON('meta', 'seeded', { at: new Date().toISOString() });
 }
+
+// ── مزامنة بيانات الإدارة مع متغيرات البيئة في كل طلب ──
+// (لا تُخزَّن كلمة المرور بشكل دائم كمصدر وحيد للحقيقة: إن غيّر المستخدم
+// ADMIN_EMAIL أو ADMIN_PASSWORD في Netlify، يجب أن تنعكس القيمة الجديدة
+// فورًا بدل أن تبقى القيمة القديمة المخزَّنة من أول seed إلى الأبد.)
+async function syncAdminCredentials() {
+  const { email: adminEmail, password: adminPassword } = requireAdminCredentials();
+  const expectedHash = hashPassword(adminPassword);
+  const existingAdmin = await Store.getJSON('admins', adminEmail);
+  if (!existingAdmin || existingAdmin.password_hash !== expectedHash) {
+    await Store.setJSON('admins', adminEmail, {
+      email: adminEmail,
+      password_hash: expectedHash,
+      created_at: existingAdmin?.created_at || new Date().toISOString(),
+    });
+    await Store.setJSON('admins_by_email', adminEmail, { id: adminEmail });
+  }
+}
+
 
 function defaultSettings() {
   return {
