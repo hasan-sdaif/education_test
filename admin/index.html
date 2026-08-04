@@ -895,6 +895,12 @@ table.data-table tbody tr:hover{background:rgba(255,255,255,.03);}
     <div class="admin-footer">
       <span>© <span id="year"></span> <span data-site="site_name">[اسم الموقع]</span></span>
       <span>وضع المعاينة: <span id="demoModeIndicator">—</span></span>
+      <span class="preview-toggle-wrap">
+        وضع معاينة الموقع: <span id="previewModeIndicator">معطّل</span>
+        <button type="button" id="previewModeToggle" class="btn btn-ghost btn-sm" style="margin-inline-start:8px;padding:3px 10px;font-size:11px;" title="عند التفعيل، تظهر أرقام وأشكال تجريبية في الصفحة الرئيسية للموقع لمعاينة التصميم قبل إدخال بيانات حقيقية">
+          <i class="fa-solid fa-eye"></i> تبديل
+        </button>
+      </span>
     </div>
   </main>
 </div>
@@ -1406,6 +1412,15 @@ const Site = (() => {
   }
   function isDemoMode(){return _demoMode===true;}
 
+  // ── وضع معاينة الموقع: يُظهر أرقاماً وأشكالاً تجريبية في الصفحة الرئيسية
+  // العامة (index.html) لمعاينة التصميم قبل إدخال بيانات حقيقية. مستقل
+  // تماماً عن "وضع المعاينة" الداخلي (isDemoMode) الخاص بعمل لوحة الإدارة
+  // بدون اتصال بالخادم. القيمة تُخزَّن في localStorage فتُقرأ من أي صفحة
+  // على نفس الموقع (بما فيها الصفحة الرئيسية للزوار).
+  const PREVIEW_MODE_KEY='platform_preview_mode';
+  function isPreviewMode(){return localStorage.getItem(PREVIEW_MODE_KEY)==='1';}
+  function setPreviewMode(on){if(on) localStorage.setItem(PREVIEW_MODE_KEY,'1'); else localStorage.removeItem(PREVIEW_MODE_KEY);}
+
   function getToken(){return localStorage.getItem(TOKEN_KEY)||'';}
   function setToken(t){localStorage.setItem(TOKEN_KEY,t);}
   function clearToken(){localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(USER_CACHE_KEY);}
@@ -1536,6 +1551,7 @@ const Site = (() => {
     toast,escapeHtml,formatMoney,formatDate,formatDateTime,timeAgo,typeColorVar,fileTypeIcon,fileTypeLabel,stars,fileToBase64,qs,debounce,copyToClipboard,
     trackRecentView,getRecentViews,initHeader,
     isDemoMode,DEMO:DEMO_IMPL,TYPE_COLOR_VAR,FILE_TYPE_ICONS,FILE_TYPE_LABELS,
+    isPreviewMode,setPreviewMode,
   };
 })();
 window.Site=Site;
