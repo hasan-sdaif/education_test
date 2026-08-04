@@ -43,6 +43,9 @@ async function detectStorage() {
       return _storageMode;
     }
   } catch (_) {}
+  // ملاحظة: تم نقل منطق getStore الفعلي إلى دالة getStore() أدناه،
+  // حيث نمرر siteID و token يدويًا إن كانا متوفرين كمتغيرات بيئة،
+  // لأن الحقن التلقائي للسياق (automatic context) لا يعمل أحيانًا.
   // 3) Fallback إلى JSON محلي
   _storageMode = 'json';
   console.log('[storage] Using local JSON fallback');
@@ -52,7 +55,21 @@ async function detectStorage() {
 async function getStore(name) {
   const mode = await detectStorage();
   if (mode === 'supabase') return _supabaseStore;
-  if (mode === 'blobs') return blobsStore(name);
+  if (mode === 'blobs') {
+    // إعداد يدوي احتياطي: بعض بيئات Netlify (خصوصًا الخطة المجانية أو
+    // عند فشل الحقن التلقائي للسياق) لا توفر siteID/token تلقائيًا،
+    // فتظهر رسالة الخطأ:
+    // "The environment has not been configured to use Netlify Blobs..."
+    // الحل: تمريرهما يدويًا من متغيرات البيئة إن كانا متوفرين.
+    const siteID = process.env.NETLIFY_SITE_ID || process.env.SITE_ID;
+    const token = process.env.NETLIFY_BLOBS_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
+    if (siteID && token) {
+      return blobsStore({ name, siteID, token });
+    }
+    // إن لم تتوفر القيم اليدوية، جرّب السياق التلقائي (يعمل غالبًا فقط
+    // داخل بيئة Netlify الرسمية عند اكتمال الإعداد التلقائي)
+    return blobsStore(name);
+  }
   // JSON fallback
   return {
     async get(key) { const db = readJson(); return db[name]?.[key] ? JSON.stringify(db[name][key]) : null; },
