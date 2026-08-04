@@ -1,6 +1,6 @@
 // netlify/functions/admin.mjs
 // كل دوال الإدارة: CRUD + stats + sellers + coupons + payouts + export/import/reset
-import { Store, hashPassword, verifyPassword, makeToken, requireAdmin, uid, logActivity, notifyUser, calculateCommission, getStorageMode, isSupabase, handler as wrapHandler } from './_lib.mjs';
+import { Store, hashPassword, verifyPassword, makeToken, requireAdmin, uid, logActivity, notifyUser, calculateCommission, getStorageMode, isSupabase, requireAdminCredentials, handler as wrapHandler } from './_lib.mjs';
 
 export const handler = wrapHandler(async (body) => {
   const action = body.action;
@@ -238,7 +238,7 @@ export const handler = wrapHandler(async (body) => {
     const merged = { ...cur, ...body.settings };
     if (body.settings?.admin_email) {
       const newEmail = body.settings.admin_email.toLowerCase().trim();
-      const oldEmail = cur.admin_email || (process.env.ADMIN_EMAIL || 'admin@platform.site').toLowerCase();
+      const oldEmail = cur.admin_email || requireAdminCredentials().email;
       const oldAdmin = await Store.getJSON('admins', oldEmail);
       if (oldAdmin) {
         if (body.settings.admin_password && body.settings.admin_password.length >= 6) oldAdmin.password_hash = hashPassword(body.settings.admin_password);
@@ -474,8 +474,7 @@ export const handler = wrapHandler(async (body) => {
     const stores = ['users','users_by_email','subjects','tags','categories','materials','plans','bundles','orders','subscriptions','purchases','reviews','verified_reviews','qa','meets','sellers','coupons','payouts','payout_requests','notifications','activity_log','admins_by_email'];
     for (const store of stores) { const items = await Store.listAll(store); for (const it of items) await Store.delete(store, it.id || it.key); }
     await Store.delete('meta', 'seeded');
-    const adminEmail = (process.env.ADMIN_EMAIL || 'admin@platform.site').toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+    const { email: adminEmail, password: adminPassword } = requireAdminCredentials();
     await Store.setJSON('admins', adminEmail, { email: adminEmail, password_hash: hashPassword(adminPassword), created_at: new Date().toISOString() });
     await Store.setJSON('admins_by_email', adminEmail, { id: adminEmail });
     await Store.setJSON('meta', 'seeded', { at: new Date().toISOString(), reset: true });
