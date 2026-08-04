@@ -85,21 +85,46 @@ const App = (() => {
   }
 
   function refreshPreviewModeUI() {
-    const on = Site.isPreviewMode();
+    const on = Site.isDashPreviewMode();
     const ind = document.getElementById('previewModeIndicator');
     const btn = document.getElementById('previewModeToggle');
     if (ind) { ind.textContent = on ? 'مفعّل' : 'معطّل'; ind.style.color = on ? 'var(--success)' : ''; }
-    if (btn) btn.innerHTML = on ? '<i class="fa-solid fa-eye-slash"></i> إيقاف' : '<i class="fa-solid fa-eye"></i> تبديل';
+    if (btn) {
+      btn.innerHTML = on ? '<i class="fa-solid fa-eye-slash"></i> إيقاف المعاينة' : '<i class="fa-solid fa-eye"></i> معاينة لوحة التحكم';
+      btn.classList.toggle('btn-primary', on);
+      btn.classList.toggle('btn-ghost', !on);
+    }
+    // شريط المعاينة العلوي
+    let banner = document.getElementById('dashPreviewBanner');
+    if (on && !banner) {
+      banner = document.createElement('div');
+      banner.id = 'dashPreviewBanner';
+      banner.style.cssText = 'position:sticky;top:0;z-index:60;background:linear-gradient(180deg,#e7a93d,#c77f14);color:#20150a;padding:9px 14px;font-size:12.5px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.2);';
+      banner.innerHTML = '<i class=\'fa-solid fa-flask\'></i> <span>وضع المعاينة — جميع البيانات والأرقام والزبائن وهمية في الذاكرة فقط ولا تؤثر على قاعدة البيانات الحقيقية. اضغطي \"إيقاف المعاينة\" للرجوع للوضع الطبيعي.</span>';
+      document.body.prepend(banner);
+    } else if (!on && banner) {
+      banner.remove();
+    }
   }
 
   async function init() {
     document.getElementById('year').textContent = new Date().getFullYear();
     document.getElementById('demoModeIndicator').textContent = Site.isDemoMode() ? 'مفعّل' : 'معطّل';
     refreshPreviewModeUI();
-    document.getElementById('previewModeToggle')?.addEventListener('click', () => {
-      Site.setPreviewMode(!Site.isPreviewMode());
+    document.getElementById('previewModeToggle')?.addEventListener('click', async () => {
+      const turningOn = !Site.isDashPreviewMode();
+      Site.setDashPreviewMode(turningOn);
       refreshPreviewModeUI();
-      Site.toast(Site.isPreviewMode() ? 'تم تفعيل وضع معاينة الموقع — افتحي الصفحة الرئيسية لرؤيتها بأرقام وأشكال تجريبية.' : 'تم إيقاف وضع معاينة الموقع.', 'success');
+      Site.toast(turningOn
+        ? 'تم تفعيل وضع معاينة لوحة التحكم — جميع الأرقام والزبائن وهمية الآن في الذاكرة فقط.'
+        : 'تم إيقاف وضع المعاينة — يتم الرجوع إلى البيانات الحقيقية.', 'success');
+      if (turningOn) {
+        // معاينة: أعد تحميل القسم الحالي لعرض البيانات الوهمية
+        try { await loadSectionData(state.currentSection); await refreshPendingCount(); } catch (_){}
+      } else {
+        // إيقاف المعاينة: أعد تحميل الصفحة كاملةً لضمان استعادة البيانات الحقيقية
+        window.location.reload();
+      }
     });
     document.querySelectorAll('.admin-side nav button[data-section]').forEach(btn => btn.addEventListener('click', () => go(btn.dataset.section)));
     document.getElementById('adminLogout').addEventListener('click', async () => { if (!confirm('متأكدة من الخروج؟')) return; await Site.adminLogout(); });
@@ -982,6 +1007,17 @@ function isSessionRejection(err) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+  // ═══ وضع معاينة لوحة التحكم: تخطّي التحقق من الجلسة بالكامل ═══
+  // يسمح بتجربة لوحة التحكم بدون تسجيل دخول وبدون قاعدة بيانات —
+  // كل البيانات تُولَّد في الذاكرة فقط.
+  if (Site.isDashPreviewMode()) {
+    const gate = document.getElementById('authGate');
+    const shell = document.getElementById('adminShell');
+    if (gate) gate.remove();
+    if (shell) shell.style.visibility = 'visible';
+    App.init();
+    return;
+  }
   // التحقق من تسجيل الدخول أولاً
   if (!Site.isAdminLoggedIn()) {
     const next = encodeURIComponent(window.location.pathname + window.location.search);
